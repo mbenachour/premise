@@ -29,3 +29,8 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+
+# archIDE phase docs
+packages/desktop-electron/requirement-phase.md
+packages/desktop-electron/architecture-phase.md
+packages/desktop-electron/premise-prd.md
