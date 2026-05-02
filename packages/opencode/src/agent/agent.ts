@@ -12,6 +12,9 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_REQUIREMENTS_AGENT from "../session/prompt/requirements-agent.txt"
+import PROMPT_ARCHITECTURE_AGENT from "../session/prompt/architecture-agent.txt"
+import PROMPT_TECHSTACK_AGENT from "../session/prompt/techstack-agent.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
@@ -146,6 +149,67 @@ export const layer = Layer.effect(
             ),
             mode: "primary",
             native: true,
+          },
+          requirements_agent: {
+            name: "requirements_agent",
+            description:
+              "Analyzes the session conversation and writes a structured requirements document to .intent/requirements.md.",
+            mode: "primary",
+            native: true,
+            prompt: PROMPT_REQUIREMENTS_AGENT,
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                bash: "deny",
+                edit: {
+                  "*": "deny",
+                  ".intent/requirements.md": "allow",
+                },
+              }),
+              user,
+            ),
+            options: {},
+          },
+          architecture_agent: {
+            name: "architecture_agent",
+            description:
+              "Analyzes the codebase and writes a ReactFlow-compatible architecture graph to .intent/architecture.json.",
+            mode: "primary",
+            native: true,
+            prompt: PROMPT_ARCHITECTURE_AGENT,
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                webfetch: "deny",
+                websearch: "deny",
+                edit: {
+                  "*": "deny",
+                  ".intent/architecture.json": "allow",
+                },
+              }),
+              user,
+            ),
+            options: {},
+          },
+          techstack_agent: {
+            name: "techstack_agent",
+            description:
+              "Analyzes the codebase dependencies and source imports, then writes a scored tech stack breakdown to .intent/tech.json.",
+            mode: "primary",
+            native: true,
+            prompt: PROMPT_TECHSTACK_AGENT,
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                websearch: "deny",
+                edit: {
+                  "*": "deny",
+                  ".intent/tech.json": "allow",
+                },
+              }),
+              user,
+            ),
+            options: {},
           },
           general: {
             name: "general",
