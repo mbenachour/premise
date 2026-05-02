@@ -29,6 +29,7 @@ import { setSessionHandoff } from "@/pages/session/handoff"
 import { useSessionLayout } from "@/pages/session/session-layout"
 import { RequirementsTab } from "@/pages/session/requirements-tab"
 import { ArchitectureTab } from "@/pages/session/architecture-tab"
+import { TechTab } from "@/pages/session/tech-tab"
 
 export function SessionSidePanel(props: {
   canReview: () => boolean
@@ -243,12 +244,7 @@ export function SessionSidePanel(props: {
                   <ArchitectureTab />
                 </Tabs.Content>
                 <Tabs.Content value="tech" class="flex-1 overflow-hidden contain-strict">
-                  <div class="h-full px-6 pb-42 flex flex-col items-center justify-center text-center gap-6">
-                    <Mark class="w-14 opacity-10" />
-                    <div class="text-14-regular text-text-weak max-w-56">
-                      Tech stack will appear here
-                    </div>
-                  </div>
+                  <TechTab />
                 </Tabs.Content>
                 <Tabs.Content value="code" class="flex-1 overflow-hidden contain-strict">
                   <DragDropProvider
