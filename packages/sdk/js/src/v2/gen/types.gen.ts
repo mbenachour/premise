@@ -1968,6 +1968,36 @@ export type SubtaskPartInput = {
   command?: string
 }
 
+export type PromptRecord = {
+  id: string
+  sessionID: string
+  agentName: string
+  preSnapshot: string
+  postSnapshot: string | null
+  status: "running" | "completed" | "interrupted"
+  timeStarted: number
+  timeEnded: number | null
+}
+
+export type PromptFileChange = {
+  id: string
+  promptID: string
+  path: string
+  status: "added" | "modified" | "deleted"
+  additions: number
+  deletions: number
+  patchRef: string
+  turnID: string | null
+}
+
+export type PromptFileStat = {
+  path: string
+  totalAdditions: number
+  totalDeletions: number
+  promptCount: number
+  lastModified: number
+}
+
 export type ProviderAuthMethod = {
   type: "oauth" | "api"
   label: string
@@ -4285,6 +4315,102 @@ export type PermissionRespondResponses = {
 }
 
 export type PermissionRespondResponse = PermissionRespondResponses[keyof PermissionRespondResponses]
+
+export type PromptEngineGetPromptsForSessionData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/prompt-engine/session/{sessionID}"
+}
+
+export type PromptEngineGetPromptsForSessionErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type PromptEngineGetPromptsForSessionError =
+  PromptEngineGetPromptsForSessionErrors[keyof PromptEngineGetPromptsForSessionErrors]
+
+export type PromptEngineGetPromptsForSessionResponses = {
+  /**
+   * List of prompt records
+   */
+  200: Array<PromptRecord>
+}
+
+export type PromptEngineGetPromptsForSessionResponse =
+  PromptEngineGetPromptsForSessionResponses[keyof PromptEngineGetPromptsForSessionResponses]
+
+export type PromptEngineGetFileChangesForPromptData = {
+  body?: never
+  path: {
+    promptID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/prompt-engine/prompt/{promptID}/files"
+}
+
+export type PromptEngineGetFileChangesForPromptErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type PromptEngineGetFileChangesForPromptError =
+  PromptEngineGetFileChangesForPromptErrors[keyof PromptEngineGetFileChangesForPromptErrors]
+
+export type PromptEngineGetFileChangesForPromptResponses = {
+  /**
+   * List of file changes
+   */
+  200: Array<PromptFileChange>
+}
+
+export type PromptEngineGetFileChangesForPromptResponse =
+  PromptEngineGetFileChangesForPromptResponses[keyof PromptEngineGetFileChangesForPromptResponses]
+
+export type PromptEngineGetFileStatsForSessionData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/prompt-engine/session/{sessionID}/file-stats"
+}
+
+export type PromptEngineGetFileStatsForSessionErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type PromptEngineGetFileStatsForSessionError =
+  PromptEngineGetFileStatsForSessionErrors[keyof PromptEngineGetFileStatsForSessionErrors]
+
+export type PromptEngineGetFileStatsForSessionResponses = {
+  /**
+   * List of file stats
+   */
+  200: Array<PromptFileStat>
+}
+
+export type PromptEngineGetFileStatsForSessionResponse =
+  PromptEngineGetFileStatsForSessionResponses[keyof PromptEngineGetFileStatsForSessionResponses]
 
 export type PermissionReplyData = {
   body?: {

@@ -30,6 +30,7 @@ import { useSessionLayout } from "@/pages/session/session-layout"
 import { RequirementsTab } from "@/pages/session/requirements-tab"
 import { ArchitectureTab } from "@/pages/session/architecture-tab"
 import { TechTab } from "@/pages/session/tech-tab"
+import { HistoryTab } from "@/pages/session/history-tab"
 
 export function SessionSidePanel(props: {
   canReview: () => boolean
@@ -234,6 +235,7 @@ export function SessionSidePanel(props: {
                     <Tabs.Trigger value="requirements">Requirements</Tabs.Trigger>
                     <Tabs.Trigger value="architecture">Architecture</Tabs.Trigger>
                     <Tabs.Trigger value="tech">Tech</Tabs.Trigger>
+                    <Tabs.Trigger value="history">History</Tabs.Trigger>
                     <Tabs.Trigger value="code">Code</Tabs.Trigger>
                   </Tabs.List>
                 </div>
@@ -245,6 +247,9 @@ export function SessionSidePanel(props: {
                 </Tabs.Content>
                 <Tabs.Content value="tech" class="flex-1 overflow-hidden contain-strict">
                   <TechTab />
+                </Tabs.Content>
+                <Tabs.Content value="history" class="flex-1 overflow-hidden contain-strict">
+                  <HistoryTab />
                 </Tabs.Content>
                 <Tabs.Content value="code" class="flex-1 overflow-hidden contain-strict">
                   <DragDropProvider

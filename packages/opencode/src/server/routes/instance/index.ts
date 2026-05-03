@@ -26,6 +26,7 @@ import { EventRoutes } from "./event"
 import { SyncRoutes } from "./sync"
 import { InstanceMiddleware } from "./middleware"
 import { jsonRequest } from "./trace"
+import { PromptEngineRoutes } from "./prompt-engine"
 
 export const InstanceRoutes = (upgrade: UpgradeWebSocket): Hono => {
   const app = new Hono()
@@ -36,6 +37,7 @@ export const InstanceRoutes = (upgrade: UpgradeWebSocket): Hono => {
     .route("/config", ConfigRoutes())
     .route("/experimental", ExperimentalRoutes())
     .route("/session", SessionRoutes())
+    .route("/prompt-engine", PromptEngineRoutes())
     .route("/permission", PermissionRoutes())
     .route("/question", QuestionRoutes())
     .route("/provider", ProviderRoutes())

@@ -90,6 +90,12 @@ import type {
   ProjectListResponses,
   ProjectUpdateErrors,
   ProjectUpdateResponses,
+  PromptEngineGetFileChangesForPromptErrors,
+  PromptEngineGetFileChangesForPromptResponses,
+  PromptEngineGetFileStatsForSessionErrors,
+  PromptEngineGetFileStatsForSessionResponses,
+  PromptEngineGetPromptsForSessionErrors,
+  PromptEngineGetPromptsForSessionResponses,
   ProviderAuthResponses,
   ProviderListResponses,
   ProviderOauthAuthorizeErrors,
@@ -2782,6 +2788,116 @@ export class Permission extends HeyApiClient {
   }
 }
 
+export class PromptEngine extends HeyApiClient {
+  /**
+   * Get prompts for session
+   *
+   * Retrieve all prompt records for a session, ordered by time started.
+   */
+  public getPromptsForSession<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      PromptEngineGetPromptsForSessionResponses,
+      PromptEngineGetPromptsForSessionErrors,
+      ThrowOnError
+    >({
+      url: "/prompt-engine/session/{sessionID}",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Get file changes for prompt
+   *
+   * Retrieve all file changes recorded for a specific prompt run.
+   */
+  public getFileChangesForPrompt<ThrowOnError extends boolean = false>(
+    parameters: {
+      promptID: string
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "promptID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      PromptEngineGetFileChangesForPromptResponses,
+      PromptEngineGetFileChangesForPromptErrors,
+      ThrowOnError
+    >({
+      url: "/prompt-engine/prompt/{promptID}/files",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Get file stats for session
+   *
+   * Retrieve aggregated file modification stats across all prompts for a session.
+   */
+  public getFileStatsForSession<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).get<
+      PromptEngineGetFileStatsForSessionResponses,
+      PromptEngineGetFileStatsForSessionErrors,
+      ThrowOnError
+    >({
+      url: "/prompt-engine/session/{sessionID}/file-stats",
+      ...options,
+      ...params,
+    })
+  }
+}
+
 export class Question extends HeyApiClient {
   /**
    * List pending questions
@@ -4423,6 +4539,11 @@ export class OpencodeClient extends HeyApiClient {
   private _permission?: Permission
   get permission(): Permission {
     return (this._permission ??= new Permission({ client: this.client }))
+  }
+
+  private _promptEngine?: PromptEngine
+  get promptEngine(): PromptEngine {
+    return (this._promptEngine ??= new PromptEngine({ client: this.client }))
   }
 
   private _question?: Question
