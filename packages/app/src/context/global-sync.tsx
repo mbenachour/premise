@@ -76,7 +76,12 @@ function createGlobalSync() {
   const sessionMeta = new Map<string, { limit: number }>()
 
   const [configQuery, providerQuery, pathQuery] = useQueries(() => ({
-    queries: [loadGlobalConfigQuery(), loadProvidersQuery(null), loadPathQuery(null), loadProjectsQuery()],
+    queries: [
+      loadGlobalConfigQuery(globalSDK.client),
+      loadProvidersQuery(null, globalSDK.client),
+      loadPathQuery(null, globalSDK.client),
+      loadProjectsQuery(globalSDK.client, (data) => setGlobalStore("project", data ?? [])),
+    ],
   }))
 
   const [globalStore, setGlobalStore] = createStore<GlobalStore>({

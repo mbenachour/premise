@@ -53,6 +53,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { TaskTool, type TaskPromptOps } from "@/tool/task"
 import { SessionRunState } from "./run-state"
 import { EffectBridge } from "@/effect/bridge"
+import { PromptEngine } from "@/prompt-engine"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -108,6 +109,7 @@ export const layer = Layer.effect(
     const summary = yield* SessionSummary.Service
     const sys = yield* SystemPrompt.Service
     const llm = yield* LLM.Service
+    const promptEngine = yield* PromptEngine.Service
     const runner = Effect.fn("SessionPrompt.runner")(function* () {
       return yield* EffectBridge.make()
     })
@@ -1279,6 +1281,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         const slog = elog.with({ sessionID })
         let structured: unknown | undefined
         let step = 0
+        let currentPromptID: MessageID | undefined
         const session = yield* sessions.get(sessionID)
 
         while (true) {
@@ -1372,6 +1375,16 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           const maxSteps = agent.steps ?? Infinity
           const isLastStep = step >= maxSteps
           msgs = yield* insertReminders({ messages: msgs, agent, session })
+
+          if (step === 1) {
+            currentPromptID = lastUser.id
+            const editablePatterns = agent.permission
+              .filter((r) => r.permission === "edit" && r.action !== "deny")
+              .map((r) => r.pattern)
+            yield* promptEngine
+              .preFlight(lastUser.id, agent.name, sessionID, editablePatterns)
+              .pipe(Effect.ignore, Effect.forkIn(scope))
+          }
 
           const msg: MessageV2.Assistant = {
             id: MessageID.ascending(),
@@ -1499,6 +1512,11 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         }
 
         yield* compaction.prune({ sessionID }).pipe(Effect.ignore, Effect.forkIn(scope))
+        if (currentPromptID) {
+          yield* promptEngine
+            .postFlight(currentPromptID, "completed")
+            .pipe(Effect.ignore, Effect.forkIn(scope))
+        }
         return yield* lastAssistant(sessionID)
       },
     )
@@ -1650,6 +1668,7 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(SessionStatus.defaultLayer),
     Layer.provide(SessionCompaction.defaultLayer),
     Layer.provide(SessionProcessor.defaultLayer),
+    Layer.provide(PromptEngine.defaultLayer),
     Layer.provide(Command.defaultLayer),
     Layer.provide(Permission.defaultLayer),
     Layer.provide(MCP.defaultLayer),

@@ -20,6 +20,7 @@ import { Question } from "@/question"
 import { errorMessage } from "@/util/error"
 import * as Log from "@opencode-ai/core/util/log"
 import { isRecord } from "@/util/record"
+import { PromptEngine } from "@/prompt-engine"
 
 const DOOM_LOOP_THRESHOLD = 3
 const log = Log.create({ service: "session.processor" })
@@ -90,6 +91,7 @@ export const layer: Layer.Layer<
   | Plugin.Service
   | SessionSummary.Service
   | SessionStatus.Service
+  | PromptEngine.Service
 > = Layer.effect(
   Service,
   Effect.gen(function* () {
@@ -104,6 +106,7 @@ export const layer: Layer.Layer<
     const summary = yield* SessionSummary.Service
     const scope = yield* Scope.Scope
     const status = yield* SessionStatus.Service
+    const promptEngine = yield* PromptEngine.Service
 
     const create = Effect.fn("SessionProcessor.create")(function* (input: Input) {
       // Pre-capture snapshot before the LLM stream starts. The AI SDK
@@ -332,6 +335,16 @@ export const layer: Layer.Layer<
 
           case "tool-result": {
             yield* completeToolCall(value.toolCallId, value.output)
+            const call = ctx.toolcalls[value.toolCallId]
+            if (call && ctx.assistantMessage.parentID) {
+              const part = MessageV2.parts(call.messageID).find((p) => p.id === call.partID)
+              if (part && part.type === "tool") {
+                const filePath = (part.state.status === "completed" ? (part.state.input as any)?.filePath : undefined) as string | undefined
+                yield* promptEngine
+                  .recordToolCompletion(ctx.assistantMessage.parentID, value.toolCallId, part.tool, filePath)
+                  .pipe(Effect.ignore)
+              }
+            }
             return
           }
 
@@ -613,6 +626,7 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(SessionStatus.defaultLayer),
     Layer.provide(Bus.layer),
     Layer.provide(Config.defaultLayer),
+    Layer.provide(PromptEngine.defaultLayer),
   ),
 )
 

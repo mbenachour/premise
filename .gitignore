@@ -8,6 +8,9 @@ node_modules
 .codex
 *~
 playground
+packages/desktop-electron/prompt-engine.md
+packages/desktop-electron/agents-premise.md
+packages/desktop-electron/premise-prd.md
 tmp
 dist
 ts-dist
