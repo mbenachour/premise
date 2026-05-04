@@ -84,7 +84,6 @@ export const layer: Layer.Layer<Service, never, Snapshot.Service> = Layer.effect
     ): Effect.Effect<void> =>
       Effect.gen(function* () {
         const preSnapshot = yield* snapshot.track()
-        if (!preSnapshot) return
 
         pending.set(promptID, [])
 
@@ -95,7 +94,7 @@ export const layer: Layer.Layer<Service, never, Snapshot.Service> = Layer.effect
               id: promptID,
               session_id: sessionID,
               agent_name: agentName,
-              pre_snapshot: preSnapshot,
+              pre_snapshot: preSnapshot ?? "",
               status: "running",
               editable_patterns: editablePatterns ?? null,
               time_started: Date.now(),
