@@ -112,7 +112,18 @@ export function RequirementsTab() {
     <div class="h-full flex flex-col overflow-y-auto px-4 py-4 gap-5">
       {/* Summary */}
       <div class="flex flex-col gap-2">
-        <div class="text-12-medium text-text-weak uppercase tracking-wide">App Summary</div>
+        <div class="flex items-center justify-between">
+          <div class="text-12-medium text-text-weak uppercase tracking-wide">App Summary</div>
+          <Button
+            variant="ghost"
+            size="small"
+            class="text-text-weak hover:text-text-base"
+            disabled={generating()}
+            onClick={() => void generate()}
+          >
+            {generating() ? "Generating…" : generated() ? "Regenerate" : "Generate"}
+          </Button>
+        </div>
         <textarea
           value={summary()}
           onInput={(e) => setSummary(e.currentTarget.value)}
