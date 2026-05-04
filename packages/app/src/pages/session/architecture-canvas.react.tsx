@@ -1,5 +1,7 @@
 /** @jsxImportSource react */
 import React, { useCallback, useEffect, useRef, useState } from "react"
+import type { GeneratedGraph } from "./arch-generate"
+import { assignPositions } from "./arch-generate"
 import {
   ReactFlow,
   addEdge,
@@ -34,19 +36,20 @@ const layerConfig = (layer: Layer) => LAYERS.find((l) => l.id === layer) ?? LAYE
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "arch-canvas-v1"
+const storageKey = (sessionId?: string) =>
+  sessionId ? `arch-canvas-v1:${sessionId}` : "arch-canvas-v1"
 
-function loadState(): { nodes: Node[]; edges: Edge[] } {
+function loadState(sessionId?: string): { nodes: Node[]; edges: Edge[] } {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(storageKey(sessionId))
     if (raw) return JSON.parse(raw)
   } catch {}
   return { nodes: [], edges: [] }
 }
 
-function saveState(nodes: Node[], edges: Edge[]) {
+function saveState(nodes: Node[], edges: Edge[], sessionId?: string) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges }))
+    localStorage.setItem(storageKey(sessionId), JSON.stringify({ nodes, edges }))
   } catch {}
 }
 
@@ -219,18 +222,45 @@ function AddNodeForm({ onAdd, onClose }: { onAdd: (name: string, layer: Layer) =
 
 // ─── Main canvas ──────────────────────────────────────────────────────────────
 
+export type ArchitectureCanvasProps = {
+  sessionId?: string
+  generating?: boolean
+  onGenerate?: () => void
+  generatedGraph?: GeneratedGraph | null
+}
+
 let nodeIdCounter = Date.now()
 const nextId = () => `node_${nodeIdCounter++}`
 
-export function ArchitectureCanvas() {
-  const initial = loadState()
+export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
+  const initial = loadState(props.sessionId)
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges)
   const [showForm, setShowForm] = useState(false)
   const [approved, setApproved] = useState(false)
 
   // Persist on every change
-  useEffect(() => { saveState(nodes, edges) }, [nodes, edges])
+  useEffect(() => { saveState(nodes, edges, props.sessionId) }, [nodes, edges, props.sessionId])
+
+  // Apply generated graph when it arrives
+  useEffect(() => {
+    if (!props.generatedGraph) return
+    try {
+      const positioned = assignPositions(props.generatedGraph.nodes ?? [])
+      const rfEdges: Edge[] = (props.generatedGraph.edges ?? []).map((e, i) => ({
+        id: `gen_edge_${i}`,
+        source: e.source,
+        target: e.target,
+        label: e.label,
+        animated: false,
+      }))
+      setNodes(positioned)
+      setEdges(rfEdges)
+      setApproved(false)
+    } catch (err) {
+      console.error("[ArchitectureCanvas] failed to apply generated graph:", err)
+    }
+  }, [props.generatedGraph])
 
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge({ ...connection, animated: false }, eds)),
@@ -280,6 +310,28 @@ export function ArchitectureCanvas() {
         {/* Toolbar */}
         <Panel position="top-left">
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={() => props.onGenerate?.()}
+              disabled={props.generating}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: "1px solid rgba(0,0,0,0.12)",
+                background: props.generating ? "rgba(0,0,0,0.04)" : "var(--background-base, #fff)",
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: props.generating ? "default" : "pointer",
+                color: props.generating ? "rgba(0,0,0,0.4)" : "var(--text-base, #222)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                opacity: props.generating ? 0.7 : 1,
+              }}
+            >
+              <span style={{ fontSize: 13, lineHeight: 1 }}>✦</span>
+              {props.generating ? "Generating…" : "Generate"}
+            </button>
             <button
               onClick={() => setShowForm(true)}
               style={{
