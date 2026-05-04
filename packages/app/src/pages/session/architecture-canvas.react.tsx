@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import type { GeneratedGraph } from "./arch-generate"
 import { assignPositions } from "./arch-generate"
 import {
@@ -94,132 +94,6 @@ function ComponentNode({ data, selected }: NodeProps) {
 
 const nodeTypes = { component: ComponentNode }
 
-// ─── Add-node form ────────────────────────────────────────────────────────────
-
-function AddNodeForm({ onAdd, onClose }: { onAdd: (name: string, layer: Layer) => void; onClose: () => void }) {
-  const [name, setName] = useState("")
-  const [layer, setLayer] = useState<Layer>("domain")
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => { inputRef.current?.focus() }, [])
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) return
-    onAdd(name.trim(), layer)
-    onClose()
-  }
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "rgba(0,0,0,0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 100,
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <form
-        onSubmit={submit}
-        style={{
-          background: "var(--background-base, #fff)",
-          borderRadius: 10,
-          padding: "20px 24px",
-          minWidth: 280,
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
-          border: "1px solid rgba(0,0,0,0.08)",
-        }}
-      >
-        <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-strong, #111)" }}>
-          Add Component
-        </div>
-        <input
-          ref={inputRef}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Component name"
-          style={{
-            border: "1px solid rgba(0,0,0,0.15)",
-            borderRadius: 6,
-            padding: "7px 10px",
-            fontSize: 13,
-            outline: "none",
-            color: "var(--text-base, #222)",
-            background: "var(--surface-panel, #f9f9f9)",
-            width: "100%",
-            boxSizing: "border-box",
-          }}
-        />
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-weak, #888)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Layer</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-            {LAYERS.map((l) => (
-              <button
-                key={l.id}
-                type="button"
-                onClick={() => setLayer(l.id)}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  border: `2px solid ${layer === l.id ? l.border : "rgba(0,0,0,0.1)"}`,
-                  background: layer === l.id ? l.bg : "transparent",
-                  color: layer === l.id ? l.text : "var(--text-base, #444)",
-                  fontSize: 12,
-                  fontWeight: layer === l.id ? 600 : 400,
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              padding: "7px 14px",
-              borderRadius: 6,
-              border: "1px solid rgba(0,0,0,0.12)",
-              background: "transparent",
-              fontSize: 13,
-              cursor: "pointer",
-              color: "var(--text-base, #444)",
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={!name.trim()}
-            style={{
-              padding: "7px 16px",
-              borderRadius: 6,
-              border: "none",
-              background: name.trim() ? "#2563eb" : "rgba(0,0,0,0.1)",
-              color: name.trim() ? "#fff" : "rgba(0,0,0,0.3)",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: name.trim() ? "pointer" : "default",
-            }}
-          >
-            Add
-          </button>
-        </div>
-      </form>
-    </div>
-  )
-}
-
 // ─── Main canvas ──────────────────────────────────────────────────────────────
 
 export type ArchitectureCanvasProps = {
@@ -229,14 +103,10 @@ export type ArchitectureCanvasProps = {
   generatedGraph?: GeneratedGraph | null
 }
 
-let nodeIdCounter = Date.now()
-const nextId = () => `node_${nodeIdCounter++}`
-
 export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
   const initial = loadState(props.sessionId)
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges)
-  const [showForm, setShowForm] = useState(false)
   const [approved, setApproved] = useState(false)
 
   // Persist on every change
@@ -267,24 +137,6 @@ export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
     [setEdges],
   )
 
-  const addNode = (name: string, layer: Layer) => {
-    const cfg = layerConfig(layer)
-    const id = nextId()
-    // Spread new nodes across the canvas based on layer index
-    const layerIndex = LAYERS.findIndex((l) => l.id === layer)
-    const existingInLayer = nodes.filter((n) => n.data.layer === layer).length
-    setNodes((nds) => [
-      ...nds,
-      {
-        id,
-        type: "component",
-        position: { x: 80 + existingInLayer * 160, y: 60 + layerIndex * 160 },
-        data: { label: name, layer },
-      },
-    ])
-    setApproved(false)
-  }
-
   const nodeCount = nodes.length
 
   return (
@@ -309,50 +161,28 @@ export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
 
         {/* Toolbar */}
         <Panel position="top-left">
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button
-              onClick={() => props.onGenerate?.()}
-              disabled={props.generating}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                borderRadius: 6,
-                border: "1px solid rgba(0,0,0,0.12)",
-                background: props.generating ? "rgba(0,0,0,0.04)" : "var(--background-base, #fff)",
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: props.generating ? "default" : "pointer",
-                color: props.generating ? "rgba(0,0,0,0.4)" : "var(--text-base, #222)",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                opacity: props.generating ? 0.7 : 1,
-              }}
-            >
-              <span style={{ fontSize: 13, lineHeight: 1 }}>✦</span>
-              {props.generating ? "Generating…" : "Generate"}
-            </button>
-            <button
-              onClick={() => setShowForm(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                borderRadius: 6,
-                border: "1px solid rgba(0,0,0,0.12)",
-                background: "var(--background-base, #fff)",
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: "pointer",
-                color: "var(--text-base, #222)",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              }}
-            >
-              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-              Add Component
-            </button>
-          </div>
+          <button
+            onClick={() => props.onGenerate?.()}
+            disabled={props.generating}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "1px solid rgba(0,0,0,0.12)",
+              background: props.generating ? "rgba(0,0,0,0.04)" : "var(--background-base, #fff)",
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: props.generating ? "default" : "pointer",
+              color: props.generating ? "rgba(0,0,0,0.4)" : "var(--text-base, #222)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+              opacity: props.generating ? 0.7 : 1,
+            }}
+          >
+            <span style={{ fontSize: 13, lineHeight: 1 }}>✦</span>
+            {props.generating ? "Generating…" : nodeCount > 0 ? "Re-generate" : "Generate"}
+          </button>
         </Panel>
 
         {/* Layer legend */}
@@ -382,7 +212,7 @@ export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
         <Panel position="bottom-center">
           {nodeCount === 0 ? (
             <div style={{ fontSize: 12, color: "var(--text-weak, #999)", padding: "4px 0" }}>
-              Add components to start designing your architecture
+              Click Generate to create your architecture
             </div>
           ) : approved ? (
             <div
@@ -437,9 +267,6 @@ export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
         </Panel>
       </ReactFlow>
 
-      {showForm && (
-        <AddNodeForm onAdd={addNode} onClose={() => setShowForm(false)} />
-      )}
     </div>
   )
 }

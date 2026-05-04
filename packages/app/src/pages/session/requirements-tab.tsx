@@ -1,5 +1,6 @@
-import { createEffect, createSignal, For, on } from "solid-js"
+import { createEffect, createSignal, For, on, onMount } from "solid-js"
 import { createStore } from "solid-js/store"
+import type { Part } from "@opencode-ai/sdk/v2/client"
 import { Button } from "@opencode-ai/ui/button"
 import { IconButton } from "@opencode-ai/ui/icon-button"
 import { Icon } from "@opencode-ai/ui/icon"
@@ -10,8 +11,11 @@ import { useSessionLayout } from "@/pages/session/session-layout"
 type Requirement = { id: string; text: string }
 
 function extractDescription(md: string): string {
-  const match = md.match(/## Description\s*\n([\s\S]*?)(?=\n##|\n#|$)/)
-  return match?.[1].trim() ?? ""
+  const match = md.match(/##\s*Description\s*\n([\s\S]*?)(?=\n##|\n#|$)/)
+  if (match?.[1].trim()) return match[1].trim()
+  const titleMatch = md.match(/#\s*Intent:\s*([^\n]+)/)
+  if (titleMatch) return titleMatch[1].trim()
+  return md.trim()
 }
 
 export function RequirementsTab() {
@@ -60,22 +64,53 @@ export function RequirementsTab() {
     }
   }
 
+  const loadRequirementsFile = async (retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const r = await sdk.client.file.read({ path: ".intent/requirements.md" })
+        if (r.data?.content) {
+          setSummary(extractDescription(r.data.content))
+          setGenerated(true)
+          return true
+        }
+      } catch {}
+      if (i < retries - 1) await new Promise((res) => setTimeout(res, 500))
+    }
+    return false
+  }
+
+  const extractFromMessages = () => {
+    const id = sessionID()
+    if (!id) return false
+    const messages = sync.data.message[id] ?? []
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant")
+    if (!lastAssistant) return false
+    const parts = sync.data.part[lastAssistant.id] ?? []
+    const textParts = parts.filter((p): p is Extract<Part, { type: "text" }> => p.type === "text")
+    const text = textParts.map((p) => p.text).join("").trim()
+    if (!text) return false
+    setSummary(text)
+    setGenerated(true)
+    return true
+  }
+
+  // When session goes idle after generation, read the output file
   createEffect(
     on(sessionStatus, (status, prev) => {
       if (!generating()) return
       if (prev !== undefined && prev !== "idle" && status === "idle") {
-        void sdk.client.file
-          .read({ path: ".intent/requirements.md" })
-          .then((r) => {
-            if (r.data?.content) {
-              setSummary(extractDescription(r.data.content))
-              setGenerated(true)
-            }
-          })
-          .finally(() => setGenerating(false))
+        void (async () => {
+          const loaded = await loadRequirementsFile(5)
+          if (!loaded) extractFromMessages()
+          setGenerating(false)
+        })()
       }
     }),
   )
+
+  onMount(() => {
+    void loadRequirementsFile()
+  })
 
   const addReq = () => {
     const id = crypto.randomUUID()
