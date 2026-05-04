@@ -334,14 +334,17 @@ export const layer: Layer.Layer<
           }
 
           case "tool-result": {
-            yield* completeToolCall(value.toolCallId, value.output)
             const call = ctx.toolcalls[value.toolCallId]
-            if (call && ctx.assistantMessage.parentID) {
-              const part = MessageV2.parts(call.messageID).find((p) => p.id === call.partID)
-              if (part && part.type === "tool") {
-                const filePath = (part.state.status === "completed" ? (part.state.input as any)?.filePath : undefined) as string | undefined
+            const callPart =
+              call && ctx.assistantMessage.parentID
+                ? MessageV2.parts(call.messageID).find((p) => p.id === call.partID)
+                : undefined
+            yield* completeToolCall(value.toolCallId, value.output)
+            if (callPart && callPart.type === "tool" && ctx.assistantMessage.parentID) {
+              const filePath = (callPart.state.input as any)?.filePath as string | undefined
+              if (filePath) {
                 yield* promptEngine
-                  .recordToolCompletion(ctx.assistantMessage.parentID, value.toolCallId, part.tool, filePath)
+                  .recordToolCompletion(ctx.assistantMessage.parentID, value.toolCallId, callPart.tool, filePath)
                   .pipe(Effect.ignore)
               }
             }
