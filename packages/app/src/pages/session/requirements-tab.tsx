@@ -56,7 +56,7 @@ export function RequirementsTab() {
     try {
       await sdk.client.session.promptAsync({
         sessionID: id,
-        agent: "requirements_agent",
+        agent: "requirements",
         parts: [{ type: "text", text: "Analyze the current project and create a paragraph summary of this application." }],
       })
     } catch {

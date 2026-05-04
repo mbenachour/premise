@@ -149,8 +149,8 @@ export const layer = Layer.effect(
             mode: "primary",
             native: true,
           },
-          requirements_agent: {
-            name: "requirements_agent",
+          requirements: {
+            name: "requirements",
             description:
               "Analyzes the session conversation and writes a structured requirements document to .intent/requirements.md.",
             mode: "primary",
@@ -169,8 +169,8 @@ export const layer = Layer.effect(
             ),
             options: {},
           },
-          architecture_agent: {
-            name: "architecture_agent",
+          architecture: {
+            name: "architecture",
             description:
               "Analyzes the codebase and writes a ReactFlow-compatible architecture graph to .intent/architecture.json.",
             mode: "primary",
