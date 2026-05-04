@@ -1,15 +1,81 @@
-import { createSignal, For } from "solid-js"
+import { createEffect, createSignal, For, on } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Button } from "@opencode-ai/ui/button"
 import { IconButton } from "@opencode-ai/ui/icon-button"
 import { Icon } from "@opencode-ai/ui/icon"
+import { useSDK } from "@/context/sdk"
+import { useSync } from "@/context/sync"
+import { useSessionLayout } from "@/pages/session/session-layout"
 
 type Requirement = { id: string; text: string }
 
+function extractDescription(md: string): string {
+  const match = md.match(/## Description\s*\n([\s\S]*?)(?=\n##|\n#|$)/)
+  return match?.[1].trim() ?? ""
+}
+
 export function RequirementsTab() {
-  const [summary, setSummary] = createSignal("")
+  const sdk = useSDK()
+  const sync = useSync()
+  const { params } = useSessionLayout()
+  const sessionID = () => params.id as string | undefined
+  const sessionStatus = () => sync.data.session_status[sessionID() ?? ""]?.type ?? "idle"
+
+  const storageKey = () => `requirements-summary-v1:${sessionID() ?? ""}`
+
+  const loadFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(storageKey())
+      if (raw) return JSON.parse(raw) as { summary: string; generated: boolean }
+    } catch {}
+    return null
+  }
+
+  const initial = loadFromStorage()
+  const [summary, setSummary] = createSignal(initial?.summary ?? "")
+  const [generated, setGenerated] = createSignal(initial?.generated ?? false)
+  const [generating, setGenerating] = createSignal(false)
   const [reqs, setReqs] = createStore<Requirement[]>([])
   let newInputRef: HTMLInputElement | undefined
+
+  createEffect(() => {
+    const key = storageKey()
+    if (!key.endsWith(":")) {
+      try { localStorage.setItem(key, JSON.stringify({ summary: summary(), generated: generated() })) } catch {}
+    }
+  })
+
+  const generate = async () => {
+    const id = sessionID()
+    if (!id || generating()) return
+    setGenerating(true)
+    try {
+      await sdk.client.session.promptAsync({
+        sessionID: id,
+        agent: "requirements_agent",
+        parts: [{ type: "text", text: "Analyze the current project and create a paragraph summary of this application." }],
+      })
+    } catch {
+      setGenerating(false)
+    }
+  }
+
+  createEffect(
+    on(sessionStatus, (status, prev) => {
+      if (!generating()) return
+      if (prev !== undefined && prev !== "idle" && status === "idle") {
+        void sdk.client.file
+          .read({ path: ".intent/requirements.md" })
+          .then((r) => {
+            if (r.data?.content) {
+              setSummary(extractDescription(r.data.content))
+              setGenerated(true)
+            }
+          })
+          .finally(() => setGenerating(false))
+      }
+    }),
+  )
 
   const addReq = () => {
     const id = crypto.randomUUID()
