@@ -14,7 +14,6 @@ import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
 import PROMPT_REQUIREMENTS_AGENT from "../session/prompt/requirements-agent.txt"
 import PROMPT_ARCHITECTURE_AGENT from "../session/prompt/architecture-agent.txt"
-import PROMPT_TECHSTACK_AGENT from "../session/prompt/techstack-agent.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
@@ -185,26 +184,6 @@ export const layer = Layer.effect(
                 edit: {
                   "*": "deny",
                   ".intent/architecture.json": "allow",
-                },
-              }),
-              user,
-            ),
-            options: {},
-          },
-          techstack_agent: {
-            name: "techstack_agent",
-            description:
-              "Analyzes the codebase dependencies and source imports, then writes a scored tech stack breakdown to .intent/tech.json.",
-            mode: "primary",
-            native: true,
-            prompt: PROMPT_TECHSTACK_AGENT,
-            permission: Permission.merge(
-              defaults,
-              Permission.fromConfig({
-                websearch: "deny",
-                edit: {
-                  "*": "deny",
-                  ".intent/tech.json": "allow",
                 },
               }),
               user,
