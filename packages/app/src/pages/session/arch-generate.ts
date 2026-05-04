@@ -12,7 +12,11 @@ const ARCH_SCHEMA = `{
   "edges": [{ "source": "slug-a", "target": "slug-b", "label": "optional" }]
 }`
 
-export function buildUserMessage(paths: string[], readme: string): string {
+export function buildUserMessage(): string {
+  return "Analyzing codebase and generating architecture..."
+}
+
+export function buildSystemPrompt(paths: string[], readme: string): string {
   const tree = paths.slice(0, 800).join("\n")
   return [
     readme ? `README:\n${readme.slice(0, 2000)}\n` : "",

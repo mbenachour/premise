@@ -6,7 +6,7 @@ import { useSync } from "@/context/sync"
 import { useSessionLayout } from "@/pages/session/session-layout"
 import { ArchitectureCanvas } from "./architecture-canvas.react"
 import type { ArchitectureCanvasProps } from "./architecture-canvas.react"
-import { collectFileTree, buildUserMessage, parseArchitectureJSON } from "./arch-generate"
+import { collectFileTree, buildUserMessage, buildSystemPrompt, parseArchitectureJSON } from "./arch-generate"
 import type { GeneratedGraph } from "./arch-generate"
 
 export function ArchitectureTab() {
@@ -32,7 +32,8 @@ export function ArchitectureTab() {
       } catch {}
       await sdk.client.session.promptAsync({
         sessionID: id,
-        parts: [{ type: "text", text: buildUserMessage(paths, readme) }],
+        system: buildSystemPrompt(paths, readme),
+        parts: [{ type: "text", text: buildUserMessage() }],
       })
     } catch {
       setGenerating(false)
