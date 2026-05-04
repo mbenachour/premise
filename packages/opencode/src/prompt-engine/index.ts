@@ -136,27 +136,38 @@ export const layer: Layer.Layer<Service, never, Snapshot.Service> = Layer.effect
         const postSnapshot = yield* snapshot.track()
         const fileChanges: FileChange[] = []
 
-        if (postSnapshot) {
-          const patch = yield* snapshot
-            .patch(row.pre_snapshot)
-            .pipe(Effect.orElseSucceed(() => ({ hash: "", files: [] as string[] })))
+        // Try to compute diffs if snapshot is available
+        if (postSnapshot && row.pre_snapshot && row.pre_snapshot !== "") {
+          const diffs = yield* snapshot
+            .diffFull(row.pre_snapshot, postSnapshot)
+            .pipe(Effect.orElseSucceed(() => [] as Snapshot.FileDiff[]))
 
-          for (const file of patch.files) {
-            const diffs = yield* snapshot
-              .diffFull(row.pre_snapshot, postSnapshot)
-              .pipe(Effect.orElseSucceed(() => [] as Snapshot.FileDiff[]))
-            const diff = diffs.find((d) => d.file === file)
-            const lastCall = calls?.findLast((c) => c.filePath.endsWith(file))
+          for (const diff of diffs) {
+            const lastCall = calls?.findLast((c) => c.filePath.endsWith(diff.file))
 
             fileChanges.push({
               id: ulid(),
               promptID,
-              path: file,
-              status: (diff?.status ?? "modified") as "added" | "modified" | "deleted",
-              additions: diff?.additions ?? 0,
-              deletions: diff?.deletions ?? 0,
+              path: diff.file,
+              status: (diff.status ?? "modified") as "added" | "modified" | "deleted",
+              additions: diff.additions,
+              deletions: diff.deletions,
               patchRef: postSnapshot,
               turnID: lastCall?.callID ?? null,
+            })
+          }
+        } else if (calls && calls.length > 0) {
+          // Snapshot not available, but we have tool call data
+          for (const call of calls) {
+            fileChanges.push({
+              id: ulid(),
+              promptID,
+              path: call.filePath,
+              status: "modified" as const,
+              additions: 0,
+              deletions: 0,
+              patchRef: postSnapshot ?? "",
+              turnID: call.callID,
             })
           }
         }
