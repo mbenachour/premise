@@ -147,8 +147,11 @@ export function RequirementsTab() {
 
   const handleKeyDown = (id: string, e: KeyboardEvent) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      addReq()
+      const req = reqs.find((r) => r.id === id)
+      if (req?.text.trim()) {
+        commitReq(id)
+        addReq()
+      }
     }
     if (e.key === "Backspace") {
       const req = reqs.find((r) => r.id === id)
@@ -202,9 +205,27 @@ export function RequirementsTab() {
                   value={req.text}
                   onInput={(e) => updateReq(req.id, e.currentTarget.value)}
                   onKeyDown={(e) => handleKeyDown(req.id, e)}
+                  onBlur={() => commitReq(req.id)}
                   placeholder="Add a requirement..."
                   class="flex-1 min-w-0 bg-transparent border-none text-14-regular text-text-base placeholder:text-text-weaker focus:outline-none py-1 px-1 rounded hover:bg-surface-base-hover focus:bg-surface-base-hover transition-colors"
                 />
+                  <Show when={req.committed && req.text.trim() && sessionID()}>
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      class="shrink-0 text-accent hover:text-accent/80"
+                      onClick={() => {
+                        const id = sessionID()
+                        if (!id) return
+                        void sdk.client.session.promptAsync({
+                          sessionID: id,
+                          parts: [{ type: "text", text: `Implement this requirement: ${req.text}` }],
+                        })
+                      }}
+                    >
+                      Implement
+                    </Button>
+                  </Show>
                 <IconButton
                   icon="close-small"
                   variant="ghost"
