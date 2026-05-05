@@ -8,7 +8,7 @@ import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
 import { useSessionLayout } from "@/pages/session/session-layout"
 
-type Requirement = { id: string; text: string }
+type Requirement = { id: string; text: string; committed: boolean }
 
 function extractDescription(md: string): string {
   const match = md.match(/##\s*Description\s*\n([\s\S]*?)(?=\n##|\n#|$)/)
@@ -114,15 +114,31 @@ export function RequirementsTab() {
 
   const addReq = () => {
     const id = crypto.randomUUID()
-    setReqs(reqs.length, { id, text: "" })
+    setReqs(reqs.length, { id, text: "", committed: false })
     // focus after DOM update
     queueMicrotask(() => newInputRef?.focus())
+  }
+
+  const commitReq = (id: string) => {
+    const idx = reqs.findIndex((r) => r.id === id)
+    if (idx === -1) return
+    if (reqs[idx].text.trim()) {
+      setReqs(idx, "committed", true)
+    }
+  }
+
+  const uncommitReq = (id: string) => {
+    const idx = reqs.findIndex((r) => r.id === id)
+    if (idx === -1) return
+    setReqs(idx, "committed", false)
   }
 
   const updateReq = (id: string, text: string) => {
     const idx = reqs.findIndex((r) => r.id === id)
     if (idx === -1) return
     setReqs(idx, "text", text)
+    // Reset committed when editing
+    setReqs(idx, "committed", false)
   }
 
   const deleteReq = (id: string) => {
