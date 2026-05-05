@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, on, onMount } from "solid-js"
+import { createEffect, createSignal, For, on, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import type { Part } from "@opencode-ai/sdk/v2/client"
 import { Button } from "@opencode-ai/ui/button"
