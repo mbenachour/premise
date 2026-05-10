@@ -99,6 +99,21 @@ export function RequirementsTab() {
     return false
   }
 
+  const loadPlanFile = async (reqId: string, planPath: string, retries = 5) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const r = await sdk.client.file.read({ path: planPath })
+        if (r.data?.content) {
+          const idx = reqs.findIndex((r) => r.id === reqId)
+          if (idx !== -1) setReqs(idx, "planPath", planPath)
+          return true
+        }
+      } catch {}
+      if (i < retries - 1) await new Promise((res) => setTimeout(res, 500))
+    }
+    return false
+  }
+
   const extractFromMessages = () => {
     const id = sessionID()
     if (!id) return false
@@ -180,6 +195,71 @@ export function RequirementsTab() {
         deleteReq(id)
       }
     }
+  }
+
+  const waitForSessionDone = (id: string) =>
+    new Promise<void>((resolve) => {
+      let timer: ReturnType<typeof setTimeout>
+      const done = () => { clearTimeout(timer); unsubIdle(); unsubErr(); resolve() }
+      const unsubIdle = sdk.event.on("session.idle", (event: { properties: { sessionID: string } }) => {
+        if (event.properties.sessionID === id) done()
+      })
+      const unsubErr = sdk.event.on("session.error", (event: { properties: { sessionID?: string } }) => {
+        if (event.properties.sessionID === id) done()
+      })
+      timer = setTimeout(done, 120_000)
+    })
+
+  const planReq = async (req: Requirement) => {
+    const id = sessionID()
+    if (!id || planningReqId()) return
+    setPlanningReqId(req.id)
+    try {
+      await sdk.client.session.promptAsync({
+        sessionID: id,
+        agent: "requirement-plan",
+        system: `Save the implementation plan to exactly this path: .intent/plans/${req.id}.md`,
+        parts: [{ type: "text", text: `Plan: ${req.text}` }],
+      })
+      await waitForSessionDone(id)
+      const planPath = `.intent/plans/${req.id}.md`
+      await loadPlanFile(req.id, planPath)
+    } finally {
+      setPlanningReqId(null)
+    }
+  }
+
+  const implementReq = async (req: Requirement) => {
+    const id = sessionID()
+    if (!id || implementingReqId()) return
+    setImplementingReqId(req.id)
+    try {
+      await sdk.client.session.promptAsync({
+        sessionID: id,
+        parts: [{ type: "text", text: `Implement: ${req.text}` }],
+      })
+      await waitForSessionDone(id)
+      const idx = reqs.findIndex((r) => r.id === req.id)
+      if (idx !== -1) setReqs(idx, "implemented", true)
+    } finally {
+      setImplementingReqId(null)
+    }
+  }
+
+  const viewPlan = async (req: Requirement) => {
+    if (!req.planPath) return
+    if (viewingPlanId() === req.id) {
+      setViewingPlanId(null)
+      setPlanContent("")
+      return
+    }
+    try {
+      const r = await sdk.client.file.read({ path: req.planPath })
+      if (r.data?.content) {
+        setPlanContent(r.data.content)
+        setViewingPlanId(req.id)
+      }
+    } catch {}
   }
 
   return (
