@@ -293,47 +293,80 @@ export function RequirementsTab() {
         <div class="flex flex-col gap-1">
           <For each={reqs}>
             {(req, idx) => (
-              <div class="group flex items-center gap-2">
-                <div class="shrink-0 size-4 flex items-center justify-center">
-                  <div class="size-1.5 rounded-full bg-text-weaker" />
-                </div>
-                <input
-                  ref={(el) => {
-                    if (idx() === reqs.length - 1) newInputRef = el
-                  }}
-                  type="text"
-                  value={req.text}
-                  onInput={(e) => updateReq(req.id, e.currentTarget.value)}
-                  onKeyDown={(e) => handleKeyDown(req.id, e)}
-                  onBlur={() => commitReq(req.id)}
-                  placeholder="Add a requirement..."
-                  class="flex-1 min-w-0 bg-transparent border-none text-14-regular text-text-base placeholder:text-text-weaker focus:outline-none py-1 px-1 rounded hover:bg-surface-base-hover focus:bg-surface-base-hover transition-colors"
-                />
-                  <Show when={req.committed && req.text.trim() && sessionID()}>
+              <div class="flex flex-col gap-1">
+                <div class="group flex items-center gap-2">
+                  <div class="shrink-0 size-4 flex items-center justify-center">
+                    <div class="size-1.5 rounded-full bg-text-weaker" />
+                  </div>
+                  <Show
+                    when={req.implemented}
+                    fallback={
+                      <input
+                        ref={(el) => {
+                          if (idx() === reqs.length - 1) newInputRef = el
+                        }}
+                        type="text"
+                        value={req.text}
+                        onInput={(e) => updateReq(req.id, e.currentTarget.value)}
+                        onKeyDown={(e) => handleKeyDown(req.id, e)}
+                        onBlur={() => commitReq(req.id)}
+                        placeholder="Add a requirement..."
+                        class="flex-1 min-w-0 bg-transparent border-none text-14-regular text-text-base placeholder:text-text-weaker focus:outline-none py-1 px-1 rounded hover:bg-surface-base-hover focus:bg-surface-base-hover transition-colors"
+                      />
+                    }
+                  >
+                    <span class="flex-1 min-w-0 text-14-regular text-text-weaker line-through py-1 px-1">
+                      {req.text}
+                    </span>
+                  </Show>
+                  <Show when={req.committed && req.text.trim() && sessionID() && !req.implemented}>
+                    <Show
+                      when={req.planPath}
+                      fallback={
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          class="shrink-0 text-text-weak hover:text-text-base"
+                          disabled={planningReqId() === req.id}
+                          onClick={() => void planReq(req)}
+                        >
+                          {planningReqId() === req.id ? "Planning…" : "Plan"}
+                        </Button>
+                      }
+                    >
+                      <Button
+                        variant="ghost"
+                        size="small"
+                        class="shrink-0 text-text-weak hover:text-text-base"
+                        onClick={() => void viewPlan(req)}
+                      >
+                        {viewingPlanId() === req.id ? "Hide Plan" : "View Plan"}
+                      </Button>
+                    </Show>
                     <Button
                       variant="ghost"
                       size="small"
                       class="shrink-0 text-accent hover:text-accent/80"
-                      onClick={() => {
-                        const id = sessionID()
-                        if (!id) return
-                        void sdk.client.session.promptAsync({
-                          sessionID: id,
-                          parts: [{ type: "text", text: `Implement this requirement: ${req.text}` }],
-                        })
-                      }}
+                      disabled={implementingReqId() === req.id}
+                      onClick={() => void implementReq(req)}
                     >
-                      Implement
+                      {implementingReqId() === req.id ? "Implementing…" : "Implement"}
                     </Button>
                   </Show>
-                <IconButton
-                  icon="close-small"
-                  variant="ghost"
-                  size="small"
-                  class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => deleteReq(req.id)}
-                  aria-label="Delete requirement"
-                />
+                  <IconButton
+                    icon="close-small"
+                    variant="ghost"
+                    size="small"
+                    class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => deleteReq(req.id)}
+                    aria-label="Delete requirement"
+                  />
+                </div>
+                <Show when={viewingPlanId() === req.id && planContent()}>
+                  <div class="ml-6 rounded-md border border-border-weak-base bg-surface-base p-3 text-12-regular text-text-base whitespace-pre-wrap font-mono overflow-x-auto max-h-96 overflow-y-auto">
+                    {planContent()}
+                  </div>
+                </Show>
               </div>
             )}
           </For>
