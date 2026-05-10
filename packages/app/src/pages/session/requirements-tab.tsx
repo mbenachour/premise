@@ -8,7 +8,7 @@ import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
 import { useSessionLayout } from "@/pages/session/session-layout"
 
-type Requirement = { id: string; text: string; committed: boolean }
+type Requirement = { id: string; text: string; committed: boolean; planPath?: string; implemented?: boolean }
 
 function extractDescription(md: string): string {
   const match = md.match(/##\s*Description\s*\n([\s\S]*?)(?=\n##|\n#|$)/)
@@ -26,6 +26,7 @@ export function RequirementsTab() {
   const sessionStatus = () => sync.data.session_status[sessionID() ?? ""]?.type ?? "idle"
 
   const storageKey = () => `requirements-summary-v1:${sessionID() ?? ""}`
+  const reqsStorageKey = () => `requirements-list-v1:${sessionID() ?? ""}`
 
   const loadFromStorage = () => {
     try {
@@ -35,17 +36,36 @@ export function RequirementsTab() {
     return null
   }
 
+  const loadReqsFromStorage = (): Requirement[] => {
+    try {
+      const raw = localStorage.getItem(reqsStorageKey())
+      if (raw) return JSON.parse(raw) as Requirement[]
+    } catch {}
+    return []
+  }
+
   const initial = loadFromStorage()
   const [summary, setSummary] = createSignal(initial?.summary ?? "")
   const [generated, setGenerated] = createSignal(initial?.generated ?? false)
   const [generating, setGenerating] = createSignal(false)
-  const [reqs, setReqs] = createStore<Requirement[]>([])
+  const [planningReqId, setPlanningReqId] = createSignal<string | null>(null)
+  const [implementingReqId, setImplementingReqId] = createSignal<string | null>(null)
+  const [viewingPlanId, setViewingPlanId] = createSignal<string | null>(null)
+  const [planContent, setPlanContent] = createSignal("")
+  const [reqs, setReqs] = createStore<Requirement[]>(loadReqsFromStorage())
   let newInputRef: HTMLInputElement | undefined
 
   createEffect(() => {
     const key = storageKey()
     if (!key.endsWith(":")) {
       try { localStorage.setItem(key, JSON.stringify({ summary: summary(), generated: generated() })) } catch {}
+    }
+  })
+
+  createEffect(() => {
+    const key = reqsStorageKey()
+    if (!key.endsWith(":")) {
+      try { localStorage.setItem(key, JSON.stringify(reqs)) } catch {}
     }
   })
 
