@@ -129,7 +129,7 @@ export function RequirementsTab() {
     return true
   }
 
-  // When session goes idle after generation, read the output file
+  // When session goes idle after summary generation, read the output file
   createEffect(
     on(sessionStatus, (status, prev) => {
       if (!generating()) return
@@ -150,7 +150,6 @@ export function RequirementsTab() {
   const addReq = () => {
     const id = crypto.randomUUID()
     setReqs(reqs.length, { id, text: "", committed: false })
-    // focus after DOM update
     queueMicrotask(() => newInputRef?.focus())
   }
 
@@ -172,7 +171,6 @@ export function RequirementsTab() {
     const idx = reqs.findIndex((r) => r.id === id)
     if (idx === -1) return
     setReqs(idx, "text", text)
-    // Reset committed when editing
     setReqs(idx, "committed", false)
   }
 
