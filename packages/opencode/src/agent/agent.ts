@@ -13,6 +13,7 @@ import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
 import PROMPT_REQUIREMENTS_AGENT from "../session/prompt/requirements-agent.txt"
+import PROMPT_REQUIREMENT_PLAN_AGENT from "../session/prompt/requirement-plan-agent.txt"
 import PROMPT_ARCHITECTURE_AGENT from "../session/prompt/architecture-agent.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
@@ -163,6 +164,26 @@ export const layer = Layer.effect(
                 edit: {
                   "*": "deny",
                   ".intent/requirements.md": "allow",
+                },
+              }),
+              user,
+            ),
+            options: {},
+          },
+          "requirement-plan": {
+            name: "requirement-plan",
+            description:
+              "Creates a detailed implementation plan for a specific requirement and saves it to .intent/plans/<id>.md.",
+            mode: "primary",
+            native: true,
+            prompt: PROMPT_REQUIREMENT_PLAN_AGENT,
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                bash: "deny",
+                edit: {
+                  "*": "deny",
+                  ".intent/plans/*.md": "allow",
                 },
               }),
               user,
