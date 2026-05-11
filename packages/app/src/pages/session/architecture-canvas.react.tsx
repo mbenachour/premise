@@ -95,7 +95,7 @@ function ComponentNode({ data, selected }: NodeProps) {
           letterSpacing: "0.05em",
         }}
       >
-        {cfg.label}
+        {group}
       </div>
       <Handle type="source" position={Position.Bottom} style={{ background: cfg.border }} />
     </div>

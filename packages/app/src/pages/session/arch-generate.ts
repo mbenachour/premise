@@ -109,7 +109,7 @@ export function parseArchitectureJSON(content: string): GeneratedGraph | null {
     const nodes: GeneratedGraph["nodes"] = (raw.components as RawComponent[]).map((c) => ({
       id: c.id ?? crypto.randomUUID(),
       label: c.name ?? c.id ?? "Component",
-      layer: inferLayer(c.id ?? "", c.name ?? "", c.type ?? "", c.description ?? ""),
+      layer: c.type ?? "other",
       description: c.description,
     }))
     const edges: GeneratedGraph["edges"] = ((raw.relationships ?? []) as RawRelationship[])
@@ -121,7 +121,6 @@ export function parseArchitectureJSON(content: string): GeneratedGraph | null {
   return null
 }
 
-const LAYER_ORDER: GeneratedLayer[] = ["presentation", "domain", "infrastructure", "external"]
 const ROW_Y_START = 60
 const ROW_GAP = 180
 const NODE_X_START = 80
@@ -129,21 +128,25 @@ const NODE_X_GAP = 200
 
 export function assignPositions(rawNodes: GeneratedGraph["nodes"] = []): Node[] {
   if (!Array.isArray(rawNodes)) return []
-  const countByLayer: Record<GeneratedLayer, number> = {
-    presentation: 0,
-    domain: 0,
-    infrastructure: 0,
-    external: 0,
+
+  const groupOrder: string[] = []
+  const countByGroup: Record<string, number> = {}
+  for (const n of rawNodes) {
+    if (!groupOrder.includes(n.layer)) {
+      groupOrder.push(n.layer)
+      countByGroup[n.layer] = 0
+    }
   }
+
   return rawNodes.map((n) => {
-    const layerIndex = LAYER_ORDER.indexOf(n.layer)
-    const slot = countByLayer[n.layer]++
+    const groupIndex = groupOrder.indexOf(n.layer)
+    const slot = countByGroup[n.layer]++
     return {
       id: n.id,
       type: "component",
       position: {
         x: NODE_X_START + slot * NODE_X_GAP,
-        y: ROW_Y_START + layerIndex * ROW_GAP,
+        y: ROW_Y_START + groupIndex * ROW_GAP,
       },
       data: { label: n.label, layer: n.layer },
     }
