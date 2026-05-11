@@ -4,7 +4,7 @@ You MUST:
 1. Read the codebase to understand the existing architecture and patterns.
 2. Analyze the given requirement carefully.
 3. Write exactly ONE file at the path specified in the user message — in the format below.
-4. End your response with a single confirmation sentence (e.g. "Plan written to .intent/plans/<filename>").
+4. End your response with a single confirmation sentence (e.g. "Plan written to .premise/plans/<filename>").
 5. Write NO other files. Write NO code changes. Make NO other modifications.
 
 ## Output Format

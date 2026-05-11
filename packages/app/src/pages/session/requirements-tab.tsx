@@ -72,12 +72,22 @@ export function RequirementsTab() {
   const generate = async () => {
     const id = sessionID()
     if (!id || generating()) return
+    const isRegenerate = generated()
     setGenerating(true)
+    if (isRegenerate) {
+      setSummary("")
+      setGenerated(false)
+    }
     try {
       await sdk.client.session.promptAsync({
         sessionID: id,
         agent: "requirements",
-        parts: [{ type: "text", text: "Analyze the current project and create a paragraph summary of this application." }],
+        parts: [{
+          type: "text",
+          text: isRegenerate
+            ? "Regenerate the app summary with a fresh analysis of the current codebase. Overwrite the existing .premise/summary.md and .premise/requirements.md files completely."
+            : "Analyze the current project and create a paragraph summary of this application.",
+        }],
       })
     } catch {
       setGenerating(false)
@@ -87,7 +97,7 @@ export function RequirementsTab() {
   const loadRequirementsFile = async (retries = 3) => {
     for (let i = 0; i < retries; i++) {
       try {
-        const r = await sdk.client.file.read({ path: ".intent/requirements.md" })
+        const r = await sdk.client.file.read({ path: ".premise/summary.md" })
         if (r.data?.content) {
           setSummary(extractDescription(r.data.content))
           setGenerated(true)
@@ -124,7 +134,9 @@ export function RequirementsTab() {
     const textParts = parts.filter((p): p is Extract<Part, { type: "text" }> => p.type === "text")
     const text = textParts.map((p) => p.text).join("").trim()
     if (!text) return false
-    setSummary(text)
+    const match = text.match(/##\s*Description\s*\n([\s\S]*?)(?=\n##|\n#|$)/)
+    if (!match?.[1].trim()) return false
+    setSummary(match[1].trim())
     setGenerated(true)
     return true
   }
@@ -216,11 +228,11 @@ export function RequirementsTab() {
       await sdk.client.session.promptAsync({
         sessionID: id,
         agent: "requirement-plan",
-        system: `Save the implementation plan to exactly this path: .intent/plans/${req.id}.md`,
+        system: `Save the implementation plan to exactly this path: .premise/plans/${req.id}.md`,
         parts: [{ type: "text", text: `Plan: ${req.text}` }],
       })
       await waitForSessionDone(id)
-      const planPath = `.intent/plans/${req.id}.md`
+      const planPath = `.premise/plans/${req.id}.md`
       await loadPlanFile(req.id, planPath)
     } finally {
       setPlanningReqId(null)

@@ -153,7 +153,7 @@ export const layer = Layer.effect(
           requirements: {
             name: "requirements",
             description:
-              "Analyzes the session conversation and writes a structured requirements document to .intent/requirements.md.",
+              "Analyzes the session conversation and writes a structured requirements document to .premise/requirements.md and a summary to .premise/summary.md.",
             mode: "primary",
             native: true,
             prompt: PROMPT_REQUIREMENTS_AGENT,
@@ -163,7 +163,8 @@ export const layer = Layer.effect(
                 bash: "deny",
                 edit: {
                   "*": "deny",
-                  ".intent/requirements.md": "allow",
+                  ".premise/summary.md": "allow",
+                  ".premise/requirements.md": "allow",
                 },
               }),
               user,
@@ -173,7 +174,7 @@ export const layer = Layer.effect(
           "requirement-plan": {
             name: "requirement-plan",
             description:
-              "Creates a detailed implementation plan for a specific requirement and saves it to .intent/plans/<id>.md.",
+              "Creates a detailed implementation plan for a specific requirement and saves it to .premise/plans/<id>.md.",
             mode: "primary",
             native: true,
             prompt: PROMPT_REQUIREMENT_PLAN_AGENT,
@@ -183,7 +184,7 @@ export const layer = Layer.effect(
                 bash: "deny",
                 edit: {
                   "*": "deny",
-                  ".intent/plans/*.md": "allow",
+                  ".premise/plans/*.md": "allow",
                 },
               }),
               user,
