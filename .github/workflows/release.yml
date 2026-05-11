@@ -52,7 +52,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_BUMP: ${{ inputs.bump || 'patch' }}
           OPENCODE_VERSION: ${{ inputs.version || steps.tag-version.outputs.version || '' }}
-          OPENCODE_CHANNEL: prod
 
     outputs:
       version: ${{ steps.version.outputs.version }}
