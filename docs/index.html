@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Premise — AI coding built for structured development</title>
+    <meta name="description" content="Premise is an AI coding environment that helps you define what you're building, architect how it fits together, and track what has changed." />
+    <meta property="og:title" content="Premise" />
+    <meta property="og:description" content="AI coding built for structured development." />
+    <meta property="og:image" content="https://mbenachour.github.io/premise/icon.png" />
+    <link rel="icon" href="icon.png" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #09081a;
+        --surface: #111028;
+        --surface2: #191836;
+        --border: rgba(255,255,255,0.08);
+        --indigo: #6366f1;
+        --indigo-light: #818cf8;
+        --indigo-dim: rgba(99,102,241,0.15);
+        --text: #e8e6f8;
+        --text-muted: #8b8aaa;
+        --radius: 14px;
+      }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* NAV */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        height: 60px;
+        background: rgba(9,8,26,0.85);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+      .nav-brand img { width: 28px; height: 28px; border-radius: 6px; }
+      .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+      .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.15s;
+      }
+      .nav-links a:hover { color: var(--text); }
+      .nav-gh {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 14px;
+        color: var(--text) !important;
+        font-size: 0.875rem !important;
+        transition: border-color 0.15s !important;
+      }
+      .nav-gh:hover { border-color: var(--indigo-light) !important; color: var(--text) !important; }
+
+      /* HERO */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 100px 2rem 80px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 700px;
+        height: 500px;
+        background: radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .hero-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 22px;
+        margin-bottom: 2rem;
+        box-shadow: 0 0 60px rgba(99,102,241,0.3);
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--indigo-dim);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 99px;
+        padding: 4px 14px;
+        font-size: 0.8rem;
+        color: var(--indigo-light);
+        margin-bottom: 1.5rem;
+      }
+      h1 {
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin-bottom: 1.25rem;
+        background: linear-gradient(160deg, #fff 30%, var(--indigo-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-sub {
+        font-size: clamp(1rem, 2.5vw, 1.2rem);
+        color: var(--text-muted);
+        max-width: 520px;
+        margin-bottom: 2.5rem;
+      }
+      .cta-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: opacity 0.15s, transform 0.15s;
+        cursor: pointer;
+      }
+      .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+      .btn-primary {
+        background: var(--indigo);
+        color: #fff;
+        box-shadow: 0 4px 24px rgba(99,102,241,0.35);
+      }
+      .btn-secondary {
+        background: var(--surface2);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      /* FEATURES */
+      .section {
+        padding: 80px 2rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .section-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--indigo-light);
+        margin-bottom: 0.75rem;
+      }
+      .section-title {
+        font-size: clamp(1.6rem, 4vw, 2.4rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+      }
+      .section-sub {
+        color: var(--text-muted);
+        max-width: 540px;
+        margin-bottom: 3rem;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.25rem;
+      }
+      .feature-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.75rem;
+        transition: border-color 0.2s;
+      }
+      .feature-card:hover { border-color: rgba(99,102,241,0.4); }
+      .feature-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: var(--indigo-dim);
+        border: 1px solid rgba(99,102,241,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.1rem;
+        font-size: 1.3rem;
+      }
+      .feature-card h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .feature-card p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.65;
+      }
+      .feature-tag {
+        display: inline-block;
+        margin-top: 1rem;
+        font-size: 0.75rem;
+        font-family: "SF Mono", "Fira Code", monospace;
+        color: var(--indigo-light);
+        background: var(--indigo-dim);
+        border-radius: 5px;
+        padding: 2px 8px;
+      }
+
+      /* LIFECYCLE */
+      .lifecycle-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+      }
+      .lc-step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+      .lc-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--indigo);
+        flex-shrink: 0;
+      }
+      .lc-arrow {
+        color: var(--border);
+        margin: 0 8px;
+        font-size: 1rem;
+      }
+
+      /* AGENTS */
+      .agents-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      .agents-table th {
+        text-align: left;
+        padding: 12px 16px;
+        color: var(--text-muted);
+        font-weight: 500;
+        border-bottom: 1px solid var(--border);
+      }
+      .agents-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .agents-table tr:last-child td { border-bottom: none; }
+      .agent-name {
+        font-family: "SF Mono", "Fira Code", monospace;
+        color: var(--indigo-light);
+        font-size: 0.85rem;
+      }
+      .agents-wrap {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      /* DIVIDER */
+      .divider {
+        height: 1px;
+        background: var(--border);
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      /* FOOTER */
+      footer {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+      footer a { color: var(--indigo-light); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+
+      /* RESPONSIVE */
+      @media (max-width: 600px) {
+        .nav-links a:not(.nav-gh) { display: none; }
+        .hero { padding: 70px 1.25rem 60px; }
+        .section { padding: 60px 1.25rem; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <nav>
+      <a class="nav-brand" href="#">
+        <img src="icon.png" alt="Premise icon" />
+        Premise
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#agents">Agents</a>
+        <a href="https://github.com/mbenachour/premise" class="nav-gh" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <img class="hero-icon" src="icon.png" alt="Premise" />
+      <div class="hero-badge">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+        Built on opencode
+      </div>
+      <h1>AI coding built for<br/>structured development</h1>
+      <p class="hero-sub">
+        Define what you're building, architect how it fits together,
+        and track what has changed — before a single line of code is written.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/mbenachour/premise/releases" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+        <a class="btn btn-secondary" href="https://github.com/mbenachour/premise" target="_blank" rel="noopener">
+          View on GitHub
+        </a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="section" id="features">
+      <p class="section-label">Features</p>
+      <h2 class="section-title">Think before you build</h2>
+      <p class="section-sub">
+        Premise adds three structured tabs to the AI coding workflow — each one writes
+        a file you can commit alongside your code.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Requirements Tab</h3>
+          <p>
+            Generate a structured app summary and requirements document from your
+            session conversation. Each requirement has a lifecycle you can track.
+          </p>
+          <div class="lifecycle-row" style="margin-top:1rem;">
+            <span class="lc-step"><span class="lc-dot" style="opacity:.4"></span>uncommitted</span>
+            <span class="lc-arrow">→</span>
+            <span class="lc-step"><span class="lc-dot" style="opacity:.6"></span>committed</span>
+            <span class="lc-arrow">→</span>
+            <span class="lc-step"><span class="lc-dot" style="opacity:.8"></span>planned</span>
+            <span class="lc-arrow">→</span>
+            <span class="lc-step"><span class="lc-dot"></span>implemented</span>
+          </div>
+          <div class="feature-tag">.premise/requirements.md</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>Architecture Tab</h3>
+          <p>
+            Generate and explore AI-produced architecture diagrams interactively.
+            Three diagram views — component, deployment, and composite structure —
+            built on React Flow.
+          </p>
+          <div style="margin-top:1rem; display:flex; flex-direction:column; gap:4px;">
+            <div class="feature-tag">.premise/architecture.json</div>
+            <div class="feature-tag">.premise/architecture-deployment.json</div>
+            <div class="feature-tag">.premise/architecture-composite.json</div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🕐</div>
+          <h3>History Tab</h3>
+          <p>
+            Browse the full history of prompt executions in your session.
+            See exactly which files changed for each prompt with
+            addition and deletion stats.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="section" id="agents">
+      <p class="section-label">Built-in Agents</p>
+      <h2 class="section-title">Purpose-built for each task</h2>
+      <p class="section-sub">
+        Three specialized agents, each scoped to a specific job and the files it is
+        allowed to write.
+      </p>
+      <div class="agents-wrap">
+        <table class="agents-table">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Purpose</th>
+              <th>Writes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="agent-name">requirements</span></td>
+              <td>Reads the session and produces a summary and structured requirements document</td>
+              <td><span class="agent-name">.premise/summary.md<br/>.premise/requirements.md</span></td>
+            </tr>
+            <tr>
+              <td><span class="agent-name">requirement-plan</span></td>
+              <td>Maps committed requirements to detailed implementation plans</td>
+              <td><span class="agent-name">.premise/plans/*.md</span></td>
+            </tr>
+            <tr>
+              <td><span class="agent-name">architecture</span></td>
+              <td>Analyses the codebase and produces the architecture graph</td>
+              <td><span class="agent-name">.premise/architecture*.json</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="section">
+      <p class="section-label">Get started</p>
+      <h2 class="section-title">Run it locally</h2>
+      <p class="section-sub">Premise is a desktop app. Download the latest release or build from source.</p>
+
+      <div class="agents-wrap" style="padding: 1.5rem; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875rem; line-height: 2;">
+        <div style="color: var(--text-muted);"># Prerequisites: Bun 1.3.13+ and Node.js 22+</div>
+        <div><span style="color:var(--indigo-light)">git clone</span> https://github.com/mbenachour/premise</div>
+        <div><span style="color:var(--indigo-light)">cd</span> premise &amp;&amp; <span style="color:var(--indigo-light)">bun install</span></div>
+        <div><span style="color:var(--indigo-light)">bun run</span> dev:desktop</div>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Premise is a fork of <a href="https://github.com/anomalyco/opencode" target="_blank" rel="noopener">opencode</a>.
+        Released under the MIT License.
+      </p>
+    </footer>
+
+  </body>
+</html>
