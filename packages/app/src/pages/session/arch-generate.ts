@@ -1,6 +1,20 @@
 import type { Node } from "@xyflow/react"
 
-export type GeneratedLayer = "presentation" | "domain" | "infrastructure" | "external"
+export type GeneratedLayer = string
+
+export type DiagramType = "component" | "deployment" | "composite"
+
+export const DIAGRAM_TYPES: { value: DiagramType; label: string }[] = [
+  { value: "component", label: "Component" },
+  { value: "deployment", label: "Deployment" },
+  { value: "composite", label: "Composite Structure" },
+]
+
+export function archFilePath(type: DiagramType): string {
+  if (type === "component") return ".premise/architecture.json"
+  if (type === "deployment") return ".premise/architecture-deployment.json"
+  return ".premise/architecture-composite.json"
+}
 
 export type GeneratedGraph = {
   nodes: Array<{ id: string; label: string; layer: GeneratedLayer; description?: string }>
@@ -8,43 +22,70 @@ export type GeneratedGraph = {
 }
 
 const ARCH_SCHEMA = `{
-  "nodes": [{ "id": "slug", "label": "Display Name", "layer": "domain|presentation|infrastructure|external" }],
+  "nodes": [{ "id": "slug", "label": "Display Name", "layer": "group-name" }],
   "edges": [{ "source": "slug-a", "target": "slug-b", "label": "optional" }]
 }`
 
-export function buildUserMessage(): string {
+export function buildUserMessage(type: DiagramType = "component"): string {
+  if (type === "deployment") return "Analyzing deployment topology and generating deployment diagram..."
+  if (type === "composite") return "Analyzing internal structure of major components and generating composite structure diagram..."
   return "Analyzing codebase and generating architecture..."
 }
 
-export function buildSystemPrompt(paths: string[], readme: string): string {
+function componentInstructions(filePath: string) {
+  return `Analyze the project and produce a Component Diagram — write ONLY a JSON file to exactly this path: ${filePath}
+
+Use this schema:
+${ARCH_SCHEMA}
+
+Identify 3–7 logical groups that reflect this project's actual structure (features, services, packages, modules).
+Use 5–15 nodes. Group related files into a single node. Node IDs are short slugs. Edges show data flow (source calls/depends on target).
+Write ONLY valid JSON, no other output.`
+}
+
+function deploymentInstructions(filePath: string) {
+  return `Analyze the project and produce a Deployment Diagram — write ONLY a JSON file to exactly this path: ${filePath}
+
+Use this schema:
+${ARCH_SCHEMA}
+
+Focus on the physical and logical deployment topology:
+- Nodes represent deployment units: servers, containers, cloud services, databases, load balancers, CDNs, workers, queues
+- The "layer" field is the deployment group: "load-balancer", "web-server", "database", "cache", "storage", "external", "cdn", "worker", "queue", "cloud" (pick what fits)
+- Edges represent network connections, data flows, or deployment relationships (label with protocol where relevant: "HTTPS", "TCP", "JDBC", "S3 API", etc.)
+- Use 5–15 nodes. Infer deployment topology from config files, docker-compose, Dockerfiles, package.json scripts, cloud config, README.
+Write ONLY valid JSON, no other output.`
+}
+
+function compositeInstructions(filePath: string) {
+  return `Analyze the project and produce a Composite Structure Diagram — write ONLY a JSON file to exactly this path: ${filePath}
+
+Use this schema:
+${ARCH_SCHEMA}
+
+Focus on the internal structure of the major classifiers/components in the codebase:
+- Identify 3–6 major classifiers (classes, modules, or services that have significant internal structure)
+- Nodes represent the PARTS inside each classifier (sub-components, collaborators, internal managers)
+- The "layer" field is the parent classifier name (e.g. "AuthService", "SessionManager", "ApiGateway")
+- Edges represent connectors between parts: how they collaborate internally
+- Use 5–15 nodes total across all classifiers.
+Write ONLY valid JSON, no other output.`
+}
+
+export function buildSystemPrompt(paths: string[], readme: string, type: DiagramType = "component"): string {
   const tree = paths.slice(0, 800).join("\n")
+  const filePath = archFilePath(type)
+  const instructions =
+    type === "deployment" ? deploymentInstructions(filePath)
+    : type === "composite" ? compositeInstructions(filePath)
+    : componentInstructions(filePath)
   return [
     readme ? `README:\n${readme.slice(0, 2000)}\n` : "",
     `Project file tree:\n${tree}`,
-    `
-Analyze the project and write ONLY a JSON file to .intent/architecture.json with this exact schema:
-${ARCH_SCHEMA}
-
-Layer rules:
-- presentation: UI, output formatting, rendering, CLI output
-- domain: core logic, entry points, orchestration, data models
-- infrastructure: I/O, shell commands, API clients, system calls, DB adapters
-- external: third-party tools or services the app calls (nvidia-smi, cloud APIs, etc.)
-
-Rules: 5–15 nodes, group related files, node IDs are short slugs, edges show data flow (source calls/depends on target). Write ONLY valid JSON to the file, no other output.`,
+    instructions,
   ]
     .filter(Boolean)
     .join("\n")
-}
-
-// Infer layer from component metadata when adapting legacy JSON schemas
-function inferLayer(id: string, name: string, type: string, description: string): GeneratedLayer {
-  const s = `${id} ${name} ${type} ${description}`.toLowerCase()
-  if (/format|output|display|print|render|cli.*output|terminal/.test(s)) return "presentation"
-  if (/main|entry|orchestrat|logic|model|store|domain|validat|use.?case/.test(s)) return "domain"
-  if (/query|runner|command|exec|shell|adapter|client|db|database|file|io|config|detect/.test(s)) return "infrastructure"
-  if (/external|third.?party|cloud|api|service|nvidia|rocm|lspci/.test(s)) return "external"
-  return "infrastructure"
 }
 
 // Parse architecture.json regardless of which schema the agent used

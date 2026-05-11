@@ -194,7 +194,7 @@ export const layer = Layer.effect(
           architecture: {
             name: "architecture",
             description:
-              "Analyzes the codebase and writes a ReactFlow-compatible architecture graph to .intent/architecture.json.",
+              "Analyzes the codebase and writes a ReactFlow-compatible architecture graph to .premise/architecture.json.",
             mode: "primary",
             native: true,
             prompt: PROMPT_ARCHITECTURE_AGENT,
@@ -205,7 +205,9 @@ export const layer = Layer.effect(
                 websearch: "deny",
                 edit: {
                   "*": "deny",
-                  ".intent/architecture.json": "allow",
+                  ".premise/architecture.json": "allow",
+                  ".premise/architecture-deployment.json": "allow",
+                  ".premise/architecture-composite.json": "allow",
                 },
               }),
               user,

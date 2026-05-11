@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
-import React, { useCallback, useEffect, useState } from "react"
-import type { GeneratedGraph } from "./arch-generate"
-import { assignPositions } from "./arch-generate"
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { GeneratedGraph, DiagramType } from "./arch-generate"
+import { assignPositions, DIAGRAM_TYPES } from "./arch-generate"
 import {
   ReactFlow,
   addEdge,
@@ -21,43 +21,53 @@ import {
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 
-// ─── Layer config ─────────────────────────────────────────────────────────────
+// ─── Dynamic group color palette ──────────────────────────────────────────────
 
-type Layer = "presentation" | "domain" | "infrastructure" | "external"
-
-const LAYERS: { id: Layer; label: string; bg: string; border: string; text: string; miniBg: string }[] = [
-  { id: "presentation", label: "Presentation", bg: "#dbeafe", border: "#3b82f6", text: "#1e40af", miniBg: "#3b82f6" },
-  { id: "domain", label: "Domain", bg: "#dcfce7", border: "#16a34a", text: "#14532d", miniBg: "#16a34a" },
-  { id: "infrastructure", label: "Infrastructure", bg: "#fef3c7", border: "#d97706", text: "#78350f", miniBg: "#d97706" },
-  { id: "external", label: "External", bg: "#f3f4f6", border: "#6b7280", text: "#1f2937", miniBg: "#6b7280" },
+const PALETTE = [
+  { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af", miniBg: "#3b82f6" },
+  { bg: "#dcfce7", border: "#16a34a", text: "#14532d", miniBg: "#16a34a" },
+  { bg: "#fef3c7", border: "#d97706", text: "#78350f", miniBg: "#d97706" },
+  { bg: "#f3e8ff", border: "#9333ea", text: "#581c87", miniBg: "#9333ea" },
+  { bg: "#fee2e2", border: "#dc2626", text: "#7f1d1d", miniBg: "#dc2626" },
+  { bg: "#e0f2fe", border: "#0284c7", text: "#0c4a6e", miniBg: "#0284c7" },
+  { bg: "#f0fdf4", border: "#15803d", text: "#14532d", miniBg: "#15803d" },
+  { bg: "#f3f4f6", border: "#6b7280", text: "#1f2937", miniBg: "#6b7280" },
 ]
 
-const layerConfig = (layer: Layer) => LAYERS.find((l) => l.id === layer) ?? LAYERS[3]
+function groupColorIndex(group: string): number {
+  let h = 0
+  for (let i = 0; i < group.length; i++) h = (h * 31 + group.charCodeAt(i)) & 0xffff
+  return h % (PALETTE.length - 1) // reserve grey as fallback for unknowns
+}
+
+function groupConfig(group: string) {
+  return PALETTE[groupColorIndex(group)] ?? PALETTE[PALETTE.length - 1]
+}
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
 
-const storageKey = (sessionId?: string) =>
-  sessionId ? `arch-canvas-v1:${sessionId}` : "arch-canvas-v1"
+const storageKey = (sessionId?: string, diagramType?: string) =>
+  `arch-canvas-v2:${diagramType ?? "component"}:${sessionId ?? ""}`
 
-function loadState(sessionId?: string): { nodes: Node[]; edges: Edge[] } {
+function loadState(sessionId?: string, diagramType?: string): { nodes: Node[]; edges: Edge[] } {
   try {
-    const raw = localStorage.getItem(storageKey(sessionId))
+    const raw = localStorage.getItem(storageKey(sessionId, diagramType))
     if (raw) return JSON.parse(raw)
   } catch {}
   return { nodes: [], edges: [] }
 }
 
-function saveState(nodes: Node[], edges: Edge[], sessionId?: string) {
+function saveState(nodes: Node[], edges: Edge[], sessionId?: string, diagramType?: string) {
   try {
-    localStorage.setItem(storageKey(sessionId), JSON.stringify({ nodes, edges }))
+    localStorage.setItem(storageKey(sessionId, diagramType), JSON.stringify({ nodes, edges }))
   } catch {}
 }
 
 // ─── Custom node ──────────────────────────────────────────────────────────────
 
 function ComponentNode({ data, selected }: NodeProps) {
-  const layer = (data.layer as Layer) ?? "domain"
-  const cfg = layerConfig(layer)
+  const group = (data.layer as string) || "other"
+  const cfg = groupConfig(group)
 
   return (
     <div
@@ -101,16 +111,31 @@ export type ArchitectureCanvasProps = {
   generating?: boolean
   onGenerate?: () => void
   generatedGraph?: GeneratedGraph | null
+  diagramType?: DiagramType
+  onDiagramTypeChange?: (type: DiagramType) => void
 }
 
 export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
-  const initial = loadState(props.sessionId)
+  const initial = loadState(props.sessionId, props.diagramType)
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges)
   const [approved, setApproved] = useState(false)
 
-  // Persist on every change
-  useEffect(() => { saveState(nodes, edges, props.sessionId) }, [nodes, edges, props.sessionId])
+  // Track current diagramType in a ref so saveState always targets the right key
+  // without being triggered by a type change (which would save the old type's nodes into the new key)
+  const diagramTypeRef = useRef(props.diagramType)
+  diagramTypeRef.current = props.diagramType
+
+  // Persist on node/edge/session change — deliberately excludes diagramType from deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { saveState(nodes, edges, props.sessionId, diagramTypeRef.current) }, [nodes, edges, props.sessionId])
+
+  // Reload canvas when diagram type switches
+  useEffect(() => {
+    const saved = loadState(props.sessionId, props.diagramType)
+    setNodes(saved.nodes)
+    setEdges(saved.edges)
+  }, [props.diagramType, props.sessionId])
 
   // Apply generated graph when it arrives
   useEffect(() => {
@@ -155,58 +180,83 @@ export function ArchitectureCanvas(props: ArchitectureCanvasProps = {}) {
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(0,0,0,0.08)" />
         <Controls showInteractive={false} />
         <MiniMap
-          nodeColor={(n) => layerConfig((n.data?.layer as Layer) ?? "domain").miniBg}
+          nodeColor={(n) => groupConfig((n.data?.layer as string) || "other").miniBg}
           style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 8 }}
         />
 
         {/* Toolbar */}
         <Panel position="top-left">
-          <button
-            onClick={() => props.onGenerate?.()}
-            disabled={props.generating}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "6px 12px",
-              borderRadius: 6,
-              border: "1px solid rgba(0,0,0,0.12)",
-              background: props.generating ? "rgba(0,0,0,0.04)" : "var(--background-base, #fff)",
-              fontSize: 12,
-              fontWeight: 500,
-              cursor: props.generating ? "default" : "pointer",
-              color: props.generating ? "rgba(0,0,0,0.4)" : "var(--text-base, #222)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              opacity: props.generating ? 0.7 : 1,
-            }}
-          >
-            <span style={{ fontSize: 13, lineHeight: 1 }}>✦</span>
-            {props.generating ? "Generating…" : nodeCount > 0 ? "Re-generate" : "Generate"}
-          </button>
-        </Panel>
-
-        {/* Layer legend */}
-        <Panel position="top-right">
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 4,
-              padding: "8px 10px",
-              background: "var(--background-base, #fff)",
-              borderRadius: 8,
-              border: "1px solid rgba(0,0,0,0.08)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            }}
-          >
-            {LAYERS.map((l) => (
-              <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 3, background: l.miniBg, flexShrink: 0 }} />
-                <span style={{ color: "var(--text-base, #444)", fontWeight: 500 }}>{l.label}</span>
-              </div>
-            ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <select
+              value={props.diagramType ?? "component"}
+              onChange={(e) => props.onDiagramTypeChange?.(e.target.value as DiagramType)}
+              disabled={props.generating}
+              style={{
+                padding: "6px 10px",
+                borderRadius: 6,
+                border: "1px solid rgba(0,0,0,0.12)",
+                background: "var(--background-base, #fff)",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "var(--text-base, #222)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                cursor: props.generating ? "default" : "pointer",
+                appearance: "auto",
+              }}
+            >
+              {DIAGRAM_TYPES.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => props.onGenerate?.()}
+              disabled={props.generating}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: "1px solid rgba(0,0,0,0.12)",
+                background: props.generating ? "rgba(0,0,0,0.04)" : "var(--background-base, #fff)",
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: props.generating ? "default" : "pointer",
+                color: props.generating ? "rgba(0,0,0,0.4)" : "var(--text-base, #222)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                opacity: props.generating ? 0.7 : 1,
+              }}
+            >
+              <span style={{ fontSize: 13, lineHeight: 1 }}>✦</span>
+              {props.generating ? "Generating…" : nodeCount > 0 ? "Re-generate" : "Generate"}
+            </button>
           </div>
         </Panel>
+
+        {/* Group legend — derived from current nodes */}
+        {nodes.length > 0 && (
+          <Panel position="top-right">
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                padding: "8px 10px",
+                background: "var(--background-base, #fff)",
+                borderRadius: 8,
+                border: "1px solid rgba(0,0,0,0.08)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              }}
+            >
+              {[...new Set(nodes.map((n) => (n.data?.layer as string) || "other"))].map((g) => (
+                <div key={g} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 3, background: groupConfig(g).miniBg, flexShrink: 0 }} />
+                  <span style={{ color: "var(--text-base, #444)", fontWeight: 500 }}>{g}</span>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        )}
 
         {/* Approve */}
         <Panel position="bottom-center">
