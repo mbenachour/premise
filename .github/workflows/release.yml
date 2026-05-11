@@ -65,9 +65,7 @@ jobs:
       matrix:
         settings:
           - host: macos-latest
-            platform_flag: --mac --arm64
-          - host: macos-13
-            platform_flag: --mac --x64
+            platform_flag: --mac --universal
           - host: ubuntu-latest
             platform_flag: --linux
           - host: windows-latest
