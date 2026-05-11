@@ -4,10 +4,10 @@
   "version": "1.14.30",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://opencode.ai",
+  "homepage": "https://github.com/anomalyco/opencode",
   "author": {
-    "name": "OpenCode",
-    "email": "hello@opencode.ai"
+    "name": "Premise",
+    "email": "mohamed.benachour@gmail.com"
   },
   "scripts": {
     "typecheck": "tsgo -b",
