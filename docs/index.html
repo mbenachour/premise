@@ -7,7 +7,7 @@
     <meta name="description" content="Premise is an AI coding environment that helps you define what you're building, architect how it fits together, and track what has changed." />
     <meta property="og:title" content="Premise" />
     <meta property="og:description" content="AI coding built for structured development." />
-    <meta property="og:image" content="https://mbenachour.github.io/premise/icon.png" />
+    <meta property="og:image" content="https://mbenachour.github.io/premise/screenshot.png" />
     <link rel="icon" href="icon.png" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -299,6 +299,30 @@
         overflow: hidden;
       }
 
+      /* SCREENSHOT */
+      .screenshot-wrap {
+        width: 100%;
+        max-width: 900px;
+        margin: 3.5rem auto 0;
+        position: relative;
+      }
+      .screenshot-wrap::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: 14px;
+        background: linear-gradient(160deg, rgba(99,102,241,0.35), rgba(99,102,241,0.05));
+        z-index: 0;
+      }
+      .screenshot-wrap img {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        border-radius: 13px;
+        display: block;
+        box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+      }
+
       /* DIVIDER */
       .divider {
         height: 1px;
@@ -361,6 +385,10 @@
         <a class="btn btn-secondary" href="https://github.com/mbenachour/premise" target="_blank" rel="noopener">
           View on GitHub
         </a>
+      </div>
+
+      <div class="screenshot-wrap">
+        <img src="screenshot.png" alt="Premise app showing the Architecture tab with an interactive component diagram" />
       </div>
     </section>
 
