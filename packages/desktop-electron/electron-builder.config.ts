@@ -33,6 +33,7 @@ const getBase = (): Configuration => ({
     buildResources: "resources",
   },
   files: ["out/**/*", "resources/**/*"],
+  asarUnpack: ["**/*.node"],
   extraResources: [
     {
       from: "native/",
