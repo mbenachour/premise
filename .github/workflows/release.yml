@@ -134,6 +134,8 @@ jobs:
         env:
           OPENCODE_CHANNEL: prod
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
+          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
 
       - name: Package (dry run — no publish)
         if: ${{ !needs.version.outputs.release }}

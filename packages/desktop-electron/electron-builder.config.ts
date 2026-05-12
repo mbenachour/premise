@@ -43,12 +43,11 @@ const getBase = (): Configuration => ({
   mac: {
     category: "public.app-category.developer-tools",
     icon: `resources/icons/icon.icns`,
-    hardenedRuntime: false,
+    hardenedRuntime: true,
     gatekeeperAssess: false,
     entitlements: "resources/entitlements.plist",
     entitlementsInherit: "resources/entitlements.plist",
     notarize: false,
-    identity: null,
     target: ["dmg", "zip"],
   },
   dmg: {
