@@ -39,7 +39,7 @@ const testServerLayer = Layer.mergeAll(
 )
 const it = testEffect(testServerLayer)
 
-const originalWorkspacesFlag = Flag.OPENCODE_EXPERIMENTAL_WORKSPACES
+const originalWorkspacesFlag = Flag.PREMISE_EXPERIMENTAL_WORKSPACES
 const originalEnv = {
   OPENCODE_AUTH_CONTENT: process.env.OPENCODE_AUTH_CONTENT,
   OTEL_EXPORTER_OTLP_HEADERS: process.env.OTEL_EXPORTER_OTLP_HEADERS,
@@ -87,14 +87,14 @@ function restoreEnv() {
 
 beforeEach(() => {
   Database.close()
-  Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+  Flag.PREMISE_EXPERIMENTAL_WORKSPACES = true
   restoreEnv()
 })
 
 afterEach(async () => {
   mock.restore()
   await Instance.disposeAll()
-  Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = originalWorkspacesFlag
+  Flag.PREMISE_EXPERIMENTAL_WORKSPACES = originalWorkspacesFlag
   restoreEnv()
   await resetDatabase()
 })
@@ -655,7 +655,7 @@ describe("workspace-old CRUD", () => {
 describe("workspace-old sync state", () => {
   test("startWorkspaceSyncing is disabled by the experimental workspace flag", async () => {
     await withInstance(async (dir) => {
-      Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = false
+      Flag.PREMISE_EXPERIMENTAL_WORKSPACES = false
       const type = unique("flag-disabled")
       const info = workspaceInfo(Instance.project.id, type)
       const session = await AppRuntime.runPromise(SessionNs.Service.use((svc) => svc.create({})))

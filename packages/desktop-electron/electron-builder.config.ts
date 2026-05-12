@@ -56,7 +56,7 @@ const getBase = (): Configuration => ({
   },
   protocols: {
     name: "Premise",
-    schemes: ["opencode"],
+    schemes: ["premise"],
   },
   win: {
     icon: `resources/icons/icon.ico`,
@@ -96,7 +96,7 @@ function getConfig() {
         ...base,
         appId: "ai.premise.desktop.beta",
         productName: "Premise Beta",
-        protocols: { name: "Premise Beta", schemes: ["opencode"] },
+        protocols: { name: "Premise Beta", schemes: ["premise"] },
         publish: { provider: "github", owner: "mbenachour", repo: "premise", channel: "beta" },
         rpm: { packageName: "premise-beta" },
       }
@@ -106,7 +106,7 @@ function getConfig() {
         ...base,
         appId: "ai.premise.desktop",
         productName: "Premise",
-        protocols: { name: "Premise", schemes: ["opencode"] },
+        protocols: { name: "Premise", schemes: ["premise"] },
         publish: { provider: "github", owner: "mbenachour", repo: "premise", channel: "latest" },
         rpm: { packageName: "premise" },
       }

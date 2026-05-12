@@ -19,9 +19,9 @@ import { tmpdir } from "../fixture/fixture"
 import { it } from "../lib/effect"
 
 const original = {
-  OPENCODE_EXPERIMENTAL_HTTPAPI: Flag.OPENCODE_EXPERIMENTAL_HTTPAPI,
-  OPENCODE_SERVER_PASSWORD: Flag.OPENCODE_SERVER_PASSWORD,
-  OPENCODE_SERVER_USERNAME: Flag.OPENCODE_SERVER_USERNAME,
+  OPENCODE_EXPERIMENTAL_HTTPAPI: Flag.PREMISE_EXPERIMENTAL_HTTPAPI,
+  OPENCODE_SERVER_PASSWORD: Flag.PREMISE_SERVER_PASSWORD,
+  OPENCODE_SERVER_USERNAME: Flag.PREMISE_SERVER_USERNAME,
 }
 
 type Backend = "legacy" | "httpapi"
@@ -32,9 +32,9 @@ type ProjectFixture = { sdk: Sdk; directory: string }
 type LlmProjectFixture = ProjectFixture & { llm: TestLLMServer["Service"] }
 
 function app(backend: Backend, input?: { password?: string; username?: string }) {
-  Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = backend === "httpapi"
-  Flag.OPENCODE_SERVER_PASSWORD = input?.password
-  Flag.OPENCODE_SERVER_USERNAME = input?.username
+  Flag.PREMISE_EXPERIMENTAL_HTTPAPI = backend === "httpapi"
+  Flag.PREMISE_SERVER_PASSWORD = input?.password
+  Flag.PREMISE_SERVER_USERNAME = input?.username
   if (backend === "legacy") return Server.Legacy().app
 
   const handler = HttpRouter.toWebHandler(
@@ -257,9 +257,9 @@ function seedMessage(directory: string, sessionID: string) {
 }
 
 afterEach(async () => {
-  Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = original.OPENCODE_EXPERIMENTAL_HTTPAPI
-  Flag.OPENCODE_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
-  Flag.OPENCODE_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
+  Flag.PREMISE_EXPERIMENTAL_HTTPAPI = original.OPENCODE_EXPERIMENTAL_HTTPAPI
+  Flag.PREMISE_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
+  Flag.PREMISE_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
   await Instance.disposeAll()
   await resetDatabase()
 })

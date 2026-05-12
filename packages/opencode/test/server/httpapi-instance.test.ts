@@ -16,12 +16,12 @@ import { testEffect } from "../lib/effect"
 // already calls Instance.disposeAll(), so we don't repeat it.
 const testStateLayer = Layer.effectDiscard(
   Effect.gen(function* () {
-    const originalHttpApi = Flag.OPENCODE_EXPERIMENTAL_HTTPAPI
-    Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = true
+    const originalHttpApi = Flag.PREMISE_EXPERIMENTAL_HTTPAPI
+    Flag.PREMISE_EXPERIMENTAL_HTTPAPI = true
     yield* Effect.promise(() => resetDatabase())
     yield* Effect.addFinalizer(() =>
       Effect.promise(async () => {
-        Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = originalHttpApi
+        Flag.PREMISE_EXPERIMENTAL_HTTPAPI = originalHttpApi
         await resetDatabase()
       }),
     )

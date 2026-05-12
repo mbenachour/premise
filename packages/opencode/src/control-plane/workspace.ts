@@ -417,7 +417,7 @@ export const layer = Layer.effect(
     })
 
     const startSync = Effect.fn("Workspace.startSync")(function* (space: Info) {
-      if (!Flag.OPENCODE_EXPERIMENTAL_WORKSPACES) return
+      if (!Flag.PREMISE_EXPERIMENTAL_WORKSPACES) return
 
       const adaptor = getAdaptor(space.projectID, space.type)
       const target = yield* Effect.promise(() => Promise.resolve(adaptor.target(space)))

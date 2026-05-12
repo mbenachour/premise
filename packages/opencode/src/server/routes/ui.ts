@@ -9,7 +9,7 @@ import { createHash } from "node:crypto"
 import fs from "node:fs/promises"
 import { ProxyUtil } from "../proxy-util"
 
-const embeddedUIPromise = Flag.OPENCODE_DISABLE_EMBEDDED_WEB_UI
+const embeddedUIPromise = Flag.PREMISE_DISABLE_EMBEDDED_WEB_UI
   ? Promise.resolve(null)
   : // @ts-expect-error - generated file at build time
     import("opencode-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => null)
@@ -45,7 +45,7 @@ function upstreamURL(path: string) {
 }
 
 function embeddedUI() {
-  if (Flag.OPENCODE_DISABLE_EMBEDDED_WEB_UI) return Promise.resolve(null)
+  if (Flag.PREMISE_DISABLE_EMBEDDED_WEB_UI) return Promise.resolve(null)
   return embeddedUIPromise
 }
 

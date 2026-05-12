@@ -21,15 +21,15 @@ import { testEffect } from "../lib/effect"
 
 void Log.init({ print: false })
 
-const originalWorkspaces = Flag.OPENCODE_EXPERIMENTAL_WORKSPACES
-const originalHttpApi = Flag.OPENCODE_EXPERIMENTAL_HTTPAPI
+const originalWorkspaces = Flag.PREMISE_EXPERIMENTAL_WORKSPACES
+const originalHttpApi = Flag.PREMISE_EXPERIMENTAL_HTTPAPI
 const it = testEffect(
   Layer.mergeAll(NodeServices.layer, Project.defaultLayer, Session.defaultLayer, Workspace.defaultLayer),
 )
 
 function request(path: string, directory: string, init: RequestInit = {}) {
   return Effect.promise(() => {
-    Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = true
+    Flag.PREMISE_EXPERIMENTAL_HTTPAPI = true
     const headers = new Headers(init.headers)
     headers.set("x-opencode-directory", directory)
     return Promise.resolve(Server.Default().app.request(path, { ...init, headers }))
@@ -126,8 +126,8 @@ function eventStreamResponse() {
 
 afterEach(async () => {
   mock.restore()
-  Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
-  Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = originalHttpApi
+  Flag.PREMISE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
+  Flag.PREMISE_EXPERIMENTAL_HTTPAPI = originalHttpApi
   await Instance.disposeAll()
   await resetDatabase()
 })
@@ -160,7 +160,7 @@ describe("workspace HttpApi", () => {
 
   it.live("serves mutation endpoints", () =>
     Effect.gen(function* () {
-      Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+      Flag.PREMISE_EXPERIMENTAL_WORKSPACES = true
       const dir = yield* tmpdirScoped({ git: true })
       const project = yield* Project.use.fromDirectory(dir)
       registerAdaptor(project.project.id, "local-test", localAdaptor(path.join(dir, ".workspace")))
@@ -197,7 +197,7 @@ describe("workspace HttpApi", () => {
 
   it.live("routes local workspace requests through the workspace target directory", () =>
     Effect.gen(function* () {
-      Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+      Flag.PREMISE_EXPERIMENTAL_WORKSPACES = true
       const dir = yield* tmpdirScoped({ git: true })
       const workspaceDir = path.join(dir, ".workspace-local")
       const project = yield* Project.use.fromDirectory(dir)
@@ -222,7 +222,7 @@ describe("workspace HttpApi", () => {
 
   it.live("proxies remote workspace HTTP requests with sanitized forwarding", () =>
     Effect.gen(function* () {
-      Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+      Flag.PREMISE_EXPERIMENTAL_WORKSPACES = true
       const dir = yield* tmpdirScoped({ git: true })
       const proxied: ProxiedRequest[] = []
       const remote = listenRemoteHttp((request) => {
@@ -307,7 +307,7 @@ describe("workspace HttpApi", () => {
 
   it.live("proxies remote workspace requests selected from session ownership", () =>
     Effect.gen(function* () {
-      Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+      Flag.PREMISE_EXPERIMENTAL_WORKSPACES = true
       const dir = yield* tmpdirScoped({ git: true })
       const proxied: ProxiedRequest[] = []
       const remote = listenRemoteHttp((request) => {

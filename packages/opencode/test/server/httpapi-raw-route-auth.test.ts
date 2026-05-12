@@ -13,10 +13,10 @@ import * as Log from "@opencode-ai/core/util/log"
 
 void Log.init({ print: false })
 
-const originalHttpApi = Flag.OPENCODE_EXPERIMENTAL_HTTPAPI
+const originalHttpApi = Flag.PREMISE_EXPERIMENTAL_HTTPAPI
 
 function app(input: { password?: string; username?: string }) {
-  Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = true
+  Flag.PREMISE_EXPERIMENTAL_HTTPAPI = true
   const handler = HttpRouter.toWebHandler(
     ExperimentalHttpApiServer.routes.pipe(
       Layer.provide(
@@ -48,7 +48,7 @@ async function cancelBody(response: Response) {
 }
 
 afterEach(async () => {
-  Flag.OPENCODE_EXPERIMENTAL_HTTPAPI = originalHttpApi
+  Flag.PREMISE_EXPERIMENTAL_HTTPAPI = originalHttpApi
   await Instance.disposeAll()
   await resetDatabase()
 })
