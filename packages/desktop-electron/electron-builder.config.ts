@@ -96,7 +96,7 @@ function getConfig() {
         appId: "ai.premise.desktop.beta",
         productName: "Premise Beta",
         protocols: { name: "Premise Beta", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode-beta", channel: "latest" },
+        publish: { provider: "github", owner: "mbenachour", repo: "premise", channel: "beta" },
         rpm: { packageName: "premise-beta" },
       }
     }
@@ -106,7 +106,7 @@ function getConfig() {
         appId: "ai.premise.desktop",
         productName: "Premise",
         protocols: { name: "Premise", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode", channel: "latest" },
+        publish: { provider: "github", owner: "mbenachour", repo: "premise", channel: "latest" },
         rpm: { packageName: "premise" },
       }
     }

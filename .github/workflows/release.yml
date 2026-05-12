@@ -70,11 +70,17 @@ jobs:
       matrix:
         settings:
           - host: macos-latest
-            platform_flag: --mac --universal
+            platform_flag: --mac --arch arm64
+            artifact_suffix: macos-arm64
+          - host: macos-latest
+            platform_flag: --mac --arch x64
+            artifact_suffix: macos-x64
           - host: ubuntu-latest
             platform_flag: --linux
+            artifact_suffix: linux
           - host: windows-latest
             platform_flag: --win
+            artifact_suffix: windows
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v4
@@ -144,7 +150,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: premise-electron-${{ matrix.settings.host }}
+          name: premise-electron-${{ matrix.settings.artifact_suffix }}
           if-no-files-found: ignore
           path: |
             packages/desktop-electron/dist/*.dmg
