@@ -70,10 +70,10 @@ jobs:
       matrix:
         settings:
           - host: macos-latest
-            platform_flag: --mac --arch arm64
+            platform_flag: --mac --arm64
             artifact_suffix: macos-arm64
           - host: macos-latest
-            platform_flag: --mac --arch x64
+            platform_flag: --mac --x64
             artifact_suffix: macos-x64
           - host: ubuntu-latest
             platform_flag: --linux
