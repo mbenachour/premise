@@ -72,9 +72,6 @@ jobs:
           - host: macos-latest
             platform_flag: --mac --arm64
             artifact_suffix: macos-arm64
-          - host: macos-latest
-            platform_flag: --mac --x64
-            artifact_suffix: macos-x64
           - host: ubuntu-latest
             platform_flag: --linux
             artifact_suffix: linux
