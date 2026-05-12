@@ -47,7 +47,7 @@ const getBase = (): Configuration => ({
     gatekeeperAssess: false,
     entitlements: "resources/entitlements.plist",
     entitlementsInherit: "resources/entitlements.plist",
-    notarize: false,
+    notarize: true,
     target: ["dmg", "zip"],
   },
   dmg: {
