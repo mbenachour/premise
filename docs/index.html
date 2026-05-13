@@ -378,14 +378,34 @@
         and track what has changed — before a single line of code is written.
       </p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/mbenachour/premise/releases" target="_blank" rel="noopener">
+        <a id="dl-btn" class="btn btn-primary" href="https://github.com/mbenachour/premise/releases/latest" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
+          <span id="dl-label">Download</span>
+        </a>
+        <a class="btn btn-secondary" href="https://github.com/mbenachour/premise/releases/latest" target="_blank" rel="noopener">
+          All platforms
         </a>
         <a class="btn btn-secondary" href="https://github.com/mbenachour/premise" target="_blank" rel="noopener">
           View on GitHub
         </a>
       </div>
+      <script>
+        const BASE = "https://github.com/mbenachour/premise/releases/latest/download/";
+        const btn = document.getElementById("dl-btn");
+        const lbl = document.getElementById("dl-label");
+        const p = navigator.platform || "";
+        const ua = navigator.userAgent || "";
+        if (/Mac/.test(p)) {
+          btn.href = BASE + "premise-electron-mac-arm64.dmg";
+          lbl.textContent = "Download for Mac";
+        } else if (/Win/.test(p)) {
+          btn.href = BASE + "premise-electron-win-x64.exe";
+          lbl.textContent = "Download for Windows";
+        } else if (/Linux/.test(p)) {
+          btn.href = BASE + "premise-electron-linux-x86_64.AppImage";
+          lbl.textContent = "Download for Linux";
+        }
+      </script>
 
       <div class="screenshot-wrap">
         <img src="screenshot.png" alt="Premise app showing the Architecture tab with an interactive component diagram" />
