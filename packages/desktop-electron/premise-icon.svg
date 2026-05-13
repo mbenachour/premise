@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#23314a"/>
+
+  <!--
+    Premise "P" mark — centered, even-odd compound path.
+    Outer P: x 242–782, y 150–870  (visual center ~512, 510)
+    Stem outer width: 85px
+    Bowl: rounded-rectangle D from y150 to y525, right edge x782
+    Inner counter: punched out, with diagonal notch at bottom-left (speech-bubble tail)
+  -->
+  <path fill-rule="evenodd" fill="#c2d8f0"
+    d="
+      M 242 150
+      L 558 150
+      Q 782 150 782 340
+      Q 782 525 558 525
+      L 327 525
+      L 327 870
+      L 242 870
+      Z
+
+      M 327 235
+      L 538 235
+      Q 675 235 675 340
+      Q 675 445 538 445
+      L 368 445
+      L 327 505
+      Z
+    "
+  />
+</svg>

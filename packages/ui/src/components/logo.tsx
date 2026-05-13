@@ -9,8 +9,16 @@ export const Mark = (props: { class?: string }) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path data-slot="logo-logo-mark-shadow" d="M12 16H4V8H12V16Z" fill="var(--icon-weak-base)" />
-      <path data-slot="logo-logo-mark-o" d="M12 4H4V16H12V4ZM16 20H0V0H16V20Z" fill="var(--icon-strong-base)" />
+      {/* Premise "P" mark — outer P minus counter with speech-bubble notch */}
+      <path
+        data-slot="logo-logo-mark-o"
+        fill-rule="evenodd"
+        fill="var(--icon-strong-base)"
+        d="
+          M 2.5 2 L 9.5 2 Q 14 2 14 7 Q 14 11.5 9.5 11.5 L 4.5 11.5 L 4.5 18 L 2.5 18 Z
+          M 4.5 3.5 L 8.5 3.5 Q 12 3.5 12 7 Q 12 10.5 8.5 10.5 L 5.5 10.5 L 4.5 11.5 Z
+        "
+      />
     </svg>
   )
 }
@@ -25,8 +33,15 @@ export const Splash = (props: Pick<ComponentProps<"svg">, "ref" | "class">) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M60 80H20V40H60V80Z" fill="var(--icon-base)" />
-      <path d="M60 20H20V80H60V20ZM80 100H0V0H80V100Z" fill="var(--icon-strong-base)" />
+      {/* Premise "P" mark scaled 5× for splash screen */}
+      <path
+        fill-rule="evenodd"
+        fill="var(--icon-strong-base)"
+        d="
+          M 12.5 10 L 47.5 10 Q 70 10 70 35 Q 70 57.5 47.5 57.5 L 22.5 57.5 L 22.5 90 L 12.5 90 Z
+          M 22.5 17.5 L 42.5 17.5 Q 60 17.5 60 35 Q 60 52.5 42.5 52.5 L 27.5 52.5 L 22.5 57.5 Z
+        "
+      />
     </svg>
   )
 }

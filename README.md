@@ -1,12 +1,6 @@
 <p align="center">
-  <img src="packages/desktop-electron/premise-icon.png" alt="Premise" width="120" />
+  <img src="premise-screenshot.png" alt="Premise — AI coding agent for structured software development" />
 </p>
-
-<h1 align="center">Premise</h1>
-
-<p align="center">An AI coding environment built for structured software development.</p>
-
-<p align="center">Built on <a href="https://github.com/anomalyco/opencode">opencode</a>.</p>
 
 ---
 
